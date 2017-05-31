@@ -1,0 +1,20 @@
+{
+  "name": "omfg",
+  "version": "2.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Noam (\"Amtrak\")",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.0.0",
+    "mocha": "^3.4.2"
+  },
+  "dependencies": {
+    "@mapbox/togeojson": "^0.16.0",
+    "xmldom": "^0.1.27"
+  }
+}
