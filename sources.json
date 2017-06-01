@@ -1,0 +1,158 @@
+﻿[
+  {
+    "Name": "OpenStreetMap",
+    "Address": "http://[abc].tile.openstreetmap.org/{zoom}/{x}/{y}.png",
+    "minZoom": 0,
+    "maxZoom": 19,
+    "attribution": "Data © <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+    "type": "TileServer"
+  },
+  {
+    "Name": "MapQuest",
+    "Address": "http://otile[1234].mqcdn.com/tiles/1.0.0/sat/{zoom}/{x}/{y}.jpg",
+    "minZoom": 0,
+    "maxZoom": 19,
+    "Attribution": "Data, imagery and map information provided by MapQuest, <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a> and contributors, <a href=\"http://wiki.openstreetmap.org/wiki/Legal_FAQ#3a._I_would_like_to_use_OpenStreetMap_maps._How_should_I_credit_you.3F\">ODbL</a>.",
+    "type": "TileServer"
+  },
+  {
+    "Name": "MapQuest Open Aerial",
+    "Address": "http://otile[1234].mqcdn.com/tiles/1.0.0/sat/{zoom}/{x}/{y}.jpg",
+    "minZoom": 0,
+    "maxZoom": 19,
+    "Attribution": "Data, imagery and map information provided by MapQuest, <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a> and contributors, <a href=\"http://wiki.openstreetmap.org/wiki/Legal_FAQ#3a._I_would_like_to_use_OpenStreetMap_maps._How_should_I_credit_you.3F\">ODbL</a>.",
+    "type": "TileServer"
+  },
+  {
+    "Name": "Migurski's Terrain",
+    "Address": "http://[abcd].tile.stamen.com/terrain-background/{zoom}/{x}/{y}.jpg",
+    "minZoom": 4,
+    "maxZoom": 18,
+    "type": "TileServer"
+  },
+  {
+    "Name": "CALTopo US Forest Service",
+    "Address": "http://s3-us-west-1.amazonaws.com/caltopo/topo/{zoom}/{x}/{y}.png",
+    "minZoom": 0,
+    "maxZoom": 16,
+    "type": "TileServer"
+  },
+  {
+    "Name": "CALTopo USGS 7.5' Topos",
+    "Address": "http://s3-us-west-1.amazonaws.com/ctusfs/fstopo/{zoom}/{x}/{y}.png",
+    "minZoom": 0,
+    "maxZoom": 16,
+    "type": "TileServer"
+  },
+  {
+    "Name": "USA Topo Maps",
+    "Address": "http://server.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer/tile/{zoom}/{y}/{x}.png",
+    "minZoom": 0,
+    "maxZoom": 15,
+    "type": "TileServer"
+  },
+  {
+    "Name": "staman Toner",
+    "Address": "http://tile.stamen.com/toner/{zoom}/{x}/{y}.png",
+    "minZoom": 0,
+    "maxZoom": 18,
+    "attribution": "Map tiles by <a href=\"http://stamen.com\">Stamen Design</a>, under <a href=\"http://creativecommons.org/licenses/by/3.0\">CC BY 3.0</a>. Data by <a href=\"http://openstreetmap.org\">OpenStreetMap</a>, under <a href=\"http://www.openstreetmap.org/copyright\">ODbL</a>.",
+    "type": "TileServer"
+  },
+  {
+    "Name": "staman Terrain",
+    "Address": "http://tile.stamen.com/terrain/{zoom}/{x}/{y}.jpg",
+    "minZoom": 0,
+    "maxZoom": 18,
+    "attribution": "Map tiles by <a href=\"http://stamen.com\">Stamen Design</a>, under <a href=\"http://creativecommons.org/licenses/by/3.0\">CC BY 3.0</a>. Data by <a href=\"http://openstreetmap.org\">OpenStreetMap</a>, under <a href=\"http://creativecommons.org/licenses/by-sa/3.0\">CC BY SA</a>.",
+    "type": "TileServer"
+  },
+  {
+    "Name": "staman Watercolor",
+    "Address": "http://tile.stamen.com/watercolor/{zoom}/{x}/{y}.jpg",
+    "minZoom": 0,
+    "maxZoom": 18,
+    "attribution": "Map tiles by <a href=\"http://stamen.com\">Stamen Design</a>, under <a href=\"http://creativecommons.org/licenses/by/3.0\">CC BY 3.0</a>. Data by <a href=\"http://openstreetmap.org\">OpenStreetMap</a>, under <a href=\"http://creativecommons.org/licenses/by-sa/3.0\">CC BY SA</a>.",
+    "type": "TileServer"
+  },
+  {
+    "Name": "Israel Hiking Map",
+    "Address": "http://israelhiking.osm.org.il/Hebrew/Tiles/{zoom}/{x}/{y}.png",
+    "minZoom": 7,
+    "maxZoom": 16,
+    "attribution": "Data © <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+    "type": "TileServer"
+  },
+  {
+    "Name": "Israel Hiking Map, EN",
+    "Address": "http://israelhiking.osm.org.il/English/Tiles/{zoom}/{x}/{y}.png",
+    "minZoom": 7,
+    "maxZoom": 16,
+    "attribution": "Data © <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+    "type": "TileServer"
+  },
+  {
+    "Name": "TA - Landcare Research - 0-15 (MBTILES)",
+    "Address": "D:\\Users\\Noam\\Downloads\\offline maps\\TA - Landcare Research - 0-15.mbtiles",
+    "minZoom": 0,
+    "maxZoom": 15,
+    "attribution": "Landcare Research and licensed by Landcare Research for re-use under Creative Commons CC-BY New Zealand license (http://creativecommons.org/licenses/by/3.0/nz/).",
+    "type": "MBTiles"
+  },
+  {
+    "Name": "Maperitive",
+    "Address": "D:\\Users\\Noam\\Downloads\\OMFG\\aosta.sqlitedb",
+    "minZoom": 10,
+    "maxZoom": 15,
+    "attribution": "whatever",
+    "type": "Maperitive"
+  },
+  {
+    "Name": "NZ - Topo50 Maps",
+    "Address": "http://tiles-[abcd].data-cdn.linz.govt.nz/services;key=65bc0122063d4dbebe7a16f80eb5f97e/tiles/v4/layer=2343/EPSG:3857/{z}/{x}/{y}.png",
+    "minZoom": 0,
+    "maxZoom": 20,
+    "attribution": "CC-By Land Information New Zealand. This product uses data sourced from Landcare Research under CC-BY, http://creativecommons.org/licenses/by/3.0/nz/",
+    "type": "TileServer"
+  },
+  {
+    "Name": "NZ - Topo250 Maps",
+    "Address": "http://tiles-[abcd].data-cdn.linz.govt.nz/services;key=65bc0122063d4dbebe7a16f80eb5f97e/tiles/v4/layer=2324/EPSG:3857/{z}/{x}/{y}.png",
+    "minZoom": 0,
+    "maxZoom": 20,
+    "attribution": "CC-By Land Information New Zealand. This product uses data sourced from Landcare Research under CC-BY, http://creativecommons.org/licenses/by/3.0/nz/",
+    "type": "TileServer"
+  },
+  {
+    "Name": "Spain - IGN Cartographic",
+    "Address": "http://www.ign.es/wmts/mapa-raster?service=WMTS&request=GetTile&version=1.0.0&layer=MTN&tilematrix={z}&tilematrixset=EPSG%3A25830&tilerow={y}&tilecol={x}&format=image/jpeg&style=default",
+    "minZoom": 4,
+    "maxZoom": 19,
+    "attribution": "",
+    "type": "TileServer"
+  },
+  {
+    "Name": "Sweden",
+    "Address": "http://ext-webbgis.lansstyrelsen.se/sverigeslanskarta/proxy/proxy.ashx?http://maps.lantmateriet.se/topowebb/v1/wmts/1.0.0/topowebb/default/3006/{z}/{x}/{y}.png",
+    "minZoom": 8,
+    "maxZoom": 15,
+    "attribution": "",
+    "type": "TileServer"
+  },
+  {
+    "Name": "France - IGN",
+    "Address": "http://wxs.ign.fr/nyaf16q5ceuzpmbh45hgojqt/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=GEOGRAPHICALGRIDSYSTEMS.MAPS&STYLE=normal&FORMAT=image/jpeg&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}",
+    "minZoom": 0,
+    "maxZoom": 18,
+    "attribution": "",
+    "type": "TileServer"
+  },
+  {
+    "Name": "Swiss",
+    "Address": "https://wmts[56789].geo.admin.ch/1.0.0/ch.swisstopo.landeskarte-farbe-10/default/current/21781/{z}/{x}/{y}.png",
+    "minZoom": 14,
+    "maxZoom": 20,
+    "attribution": "",
+    "type": "TileServer"
+  }
+]

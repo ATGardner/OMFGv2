@@ -1,16 +1,26 @@
-const fs = require('fs');
-const path = require('path');
-const { DOMParser } = require('xmldom');
-const tj = require('@mapbox/togeojson');
+const fetch = require('node-fetch');
+const {readFileSync} = require('fs');
+const {extname} = require('path');
+const {gpx, kml} = require('@mapbox/togeojson');
+const {DOMParser} = require('xmldom');
+const Tile = require('./Tile');
 
 function readGeoJson(fileName) {
-  const text = fs.readFileSync(fileName, 'utf8');
+  const text = readFileSync(fileName, 'utf8');
   const doc = new DOMParser().parseFromString(text);
-  return path.extname(fileName) === '.gpx' ? tj.gpx(doc) : tj.kml(doc);
+  const ext = extname(fileName);
+  switch (ext) {
+    case '.gpx':
+      return gpx(doc);
+    case '.kml':
+      return kml(doc);
+    default:
+      throw new Error('Unrecognized file type. Use only gpx/kml files.');
+  }
 }
 
 function* extractCoordinates(json) {
-  const { type, coordinates } = json;
+  const {type, coordinates} = json;
   switch (type) {
     case 'Point':
       return yield coordinates;
@@ -33,17 +43,17 @@ function* extractCoordinates(json) {
 
       return;
     case 'GeometryCollection':
-      const { geometries } = json;
+      const {geometries} = json;
       for (const geometry of geometries) {
         yield* extractCoordinates(geometry);
       }
 
       return;
     case 'Feature':
-      const { geometry } = json;
+      const {geometry} = json;
       return yield* extractCoordinates(geometry);
     case 'FeatureCollection':
-      const { features } = json;
+      const {features} = json;
       for (const feature of features) {
         yield* extractCoordinates(feature);
       }
@@ -63,11 +73,41 @@ function lat2tile(lat, zoom) {
 function coordinates2Tile([lon, lat], zoom) {
   const x = long2tile(lon, zoom);
   const y = lat2tile(lat, zoom);
-  return { x, y, zoom };
+  return new Tile(x, y, zoom);
+}
+
+let counter = -1;
+
+function buildTileUrl(addressTemplate, tile) {
+  return addressTemplate.replace(/{x}/, tile.x)
+    .replace(/{y}/, tile.y)
+    .replace(/{zoom}/, tile.zoom)
+    .replace(/\[(.*)]/, (match, subDomains) => {
+      counter = (counter + 1) % subDomains.length;
+      return subDomains[counter];
+    });
+}
+
+async function getTileData(source, tile) {
+  const address = buildTileUrl(source.Address, tile);
+  try {
+    const response = await fetch(address);
+    if (!response.ok) {
+      console.error(`Failed getting tile data, status: ${response.status}`);
+      return;
+    }
+
+    const data = await response.buffer();
+    return data;
+  } catch (error) {
+    console.error('Failed getting tile data');
+  }
 }
 
 module.exports = {
   readGeoJson,
   extractCoordinates,
-  coordinates2Tile
+  coordinates2Tile,
+  buildTileUrl,
+  getTileData
 };

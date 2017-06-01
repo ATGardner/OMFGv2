@@ -1,5 +1,10 @@
-const { expect } = require('chai');
-const { readGeoJson, extractCoordinates, coordinates2Tile } = require('../src/utils');
+const chai = require('chai');
+const chaiString = require('chai-string');
+const {readGeoJson, extractCoordinates, coordinates2Tile, buildTileUrl} = require('../src/utils');
+const Tile = require('../src/Tile');
+
+chai.use(chaiString);
+const {expect} = chai;
 
 describe('Utils', () => {
   describe('readGeoJson', () => {
@@ -17,6 +22,28 @@ describe('Utils', () => {
     it('reads GeoJson from kml file', () => {
       const input = 'test/inputs/simple.kml';
       testReadGeoJson(input);
+    });
+
+    it('throws when trying to read an unrecognized file type', done => {
+      try {
+        const input = 'test/inputs/simple.xxx';
+        testReadGeoJson(input);
+        done(new Error('File type "xxx" is not recognizable'));
+      } catch (error) {
+        expect(error).to.have.property('message', 'Unrecognized file type. Use only gpx/kml files.');
+        done();
+      }
+    });
+
+    it('throws when trying to read a non-existing file', done => {
+      try {
+        const input = 'test/inputs/non-existing.gpx';
+        testReadGeoJson(input);
+        done(new Error('File does not exist'));
+      } catch (error) {
+        expect(error.message).to.startWith('ENOENT: no such file or directory');
+        done();
+      }
     });
   });
 
@@ -151,7 +178,7 @@ describe('Utils', () => {
             },
             properties: {
               prop0: 'value0',
-              prop1: { this: 'that' }
+              prop1: {this: 'that'}
             }
           }
         ]
@@ -176,7 +203,35 @@ describe('Utils', () => {
     it('calculates the right tile by coordinates', () => {
       const input = [0, 17];
       const result = coordinates2Tile(input, 16);
-      expect(result).to.eql({ x: 32768, y: 29626, zoom: 16 });
+      expect(result).to.have.property('x', 32768);
+      expect(result).to.have.property('y', 29626);
+      expect(result).to.have.property('zoom', 16);
+    });
+  });
+
+  describe('buildTileUrl', () => {
+    it('builds a proper url when given a tile', () => {
+      const sourceTemplate = 'http://a.tile.openstreetmap.org/{zoom}/{x}/{y}.png';
+      const tile = new Tile(1, 2, 3);
+      const result = buildTileUrl(sourceTemplate, tile);
+      expect(result).to.equal('http://a.tile.openstreetmap.org/3/1/2.png')
+    });
+
+    it('creates the 2nd address using the 2nd sub domain', () => {
+      const sourceTemplate = 'http://[ab].tile.openstreetmap.org/{zoom}/{x}/{y}.png';
+      const tile = new Tile(1, 2, 3);
+      buildTileUrl(sourceTemplate, tile);
+      const result = buildTileUrl(sourceTemplate, tile);
+      expect(result).to.equal('http://b.tile.openstreetmap.org/3/1/2.png')
+    });
+
+    it('creates the 3rd address using the 1st sub domain', () => {
+      const sourceTemplate = 'http://[ab].tile.openstreetmap.org/{zoom}/{x}/{y}.png';
+      const tile = new Tile(1, 2, 3);
+      buildTileUrl(sourceTemplate, tile);
+      buildTileUrl(sourceTemplate, tile);
+      const result = buildTileUrl(sourceTemplate, tile);
+      expect(result).to.equal('http://a.tile.openstreetmap.org/3/1/2.png')
     });
   });
 });
