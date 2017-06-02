@@ -88,8 +88,7 @@ function buildTileUrl(addressTemplate, tile) {
     });
 }
 
-async function getTileData(source, tile) {
-  const address = buildTileUrl(source.Address, tile);
+async function downloadTile(address) {
   try {
     const response = await fetch(address);
     if (!response.ok) {
@@ -97,8 +96,7 @@ async function getTileData(source, tile) {
       return;
     }
 
-    const data = await response.buffer();
-    return data;
+    return response.buffer();
   } catch (error) {
     console.error('Failed getting tile data');
   }
@@ -109,5 +107,5 @@ module.exports = {
   extractCoordinates,
   coordinates2Tile,
   buildTileUrl,
-  getTileData
+  downloadTile
 };

@@ -1,6 +1,8 @@
 const { extname, basename } = require('path');
 const { downloadTiles } = require('./src/main');
+const Source = require('./src/Source');
 const sources = require('./sources.json');
+
 const { inputFiles, source, minZoom, maxZoom, output = generateOutput(inputFiles, minZoom, maxZoom)} = require('yargs')
   .usage('Usage: $0 [options]')
   .example(
@@ -17,12 +19,12 @@ const { inputFiles, source, minZoom, maxZoom, output = generateOutput(inputFiles
     s: {
       alias: 'source',
       coerce: arg => {
-        const source = sources.find(({Name}) => Name === arg);
-        if (!source) {
+        const sourceDescriptor = sources.find(({Name}) => Name === arg);
+        if (!sourceDescriptor) {
           throw new Error(`Could not find source "${arg}"`);
         }
 
-        return source;
+        return new Source(sourceDescriptor);
       },
       demandOption: true,
       describe: 'Source tile server address',
@@ -39,11 +41,6 @@ const { inputFiles, source, minZoom, maxZoom, output = generateOutput(inputFiles
       default: 15,
       describe: 'Maximum required zoom',
       type: 'number'
-    },
-    o: {
-      alias: 'output',
-      describe: 'Reverse way sort and marker order',
-      type: 'bool'
     }
   })
   .help('h')
