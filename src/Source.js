@@ -5,9 +5,13 @@ class Source {
     Object.assign(this, sourceDescriptor);
   }
 
-  getTileData(tile) {
+  async getTileData(tile) {
     const address = buildTileUrl(this.Address, tile);
-    return downloadTile(address);
+    try {
+      return await downloadTile(address);
+    } catch (error) {
+      console.error(`Failed getting tile ${tile.toString()} data, error: ${error.message}`);
+    }
   }
 }
 

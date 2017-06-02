@@ -89,17 +89,12 @@ function buildTileUrl(addressTemplate, tile) {
 }
 
 async function downloadTile(address) {
-  try {
-    const response = await fetch(address);
-    if (!response.ok) {
-      console.error(`Failed getting tile data, status: ${response.status}`);
-      return;
-    }
-
-    return response.buffer();
-  } catch (error) {
-    console.error('Failed getting tile data');
+  const response = await fetch(address);
+  if (!response.ok) {
+    throw new Error(response.statusText);
   }
+
+  return response.buffer();
 }
 
 module.exports = {

@@ -1,9 +1,17 @@
 const { extname, basename } = require('path');
 const { downloadTiles } = require('./src/main');
+const { getPackager } = require('./src/Packager');
 const Source = require('./src/Source');
 const sources = require('./sources.json');
 
-const { inputFiles, source, minZoom, maxZoom, output = generateOutput(inputFiles, minZoom, maxZoom)} = require('yargs')
+const {
+  inputFiles,
+  source,
+  minZoom,
+  maxZoom,
+  output = generateOutput(inputFiles, source, minZoom, maxZoom),
+  target
+} = require('yargs')
   .usage('Usage: $0 [options]')
   .example(
     'node $0 -i "input1.gpx" "input2.kml" -s OpenStreetMap',
@@ -19,7 +27,7 @@ const { inputFiles, source, minZoom, maxZoom, output = generateOutput(inputFiles
     s: {
       alias: 'source',
       coerce: arg => {
-        const sourceDescriptor = sources.find(({Name}) => Name === arg);
+        const sourceDescriptor = sources.find(({ Name }) => Name === arg);
         if (!sourceDescriptor) {
           throw new Error(`Could not find source "${arg}"`);
         }
@@ -41,6 +49,16 @@ const { inputFiles, source, minZoom, maxZoom, output = generateOutput(inputFiles
       default: 15,
       describe: 'Maximum required zoom',
       type: 'number'
+    },
+    o: {
+      alias: 'output',
+      describe: 'Reverse way sort and marker order',
+      type: 'string'
+    },
+    t: {
+      alias: 'target',
+      choices: ['MBTiles', 'BCNav', 'Both'],
+      default: 'MBTiles'
     }
   })
   .help('h')
@@ -50,12 +68,13 @@ const { inputFiles, source, minZoom, maxZoom, output = generateOutput(inputFiles
 function generateOutput([firstInput], source, minZoom, maxZoom) {
   const ext = extname(firstInput);
   const fileName = basename(firstInput, ext);
-  return `${fileName} - ${source.name} - ${minZoom}-${maxZoom}`;
+  return `${fileName} - ${source.Name} - ${minZoom}-${maxZoom}`;
 }
 
 (async function() {
   try {
-    await downloadTiles(inputFiles, source, minZoom, maxZoom, output);
+    const packager = getPackager(target, output);
+    await downloadTiles(inputFiles, source, minZoom, maxZoom, packager);
   } catch (error) {
     console.error(error);
   }

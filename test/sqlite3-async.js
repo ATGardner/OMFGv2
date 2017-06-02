@@ -39,5 +39,13 @@ describe('sqlite-async', () => {
     await db.run('CREATE TABLE lorem (info TEXT)');
     const row = await db.run('SELECT * FROM lorem');
     expect(row).to.be.undefined;
-  })
+  });
+
+  it('closes db after insert', async () => {
+    const db = new Database();
+    await db.init();
+    await db.run('CREATE TABLE lorem (info TEXT)');
+    await db.run('INSERT INTO lorem (info) VALUES ($info)', {$info: 'blah'});
+    await db.close();
+  });
 });

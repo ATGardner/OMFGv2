@@ -21,18 +21,23 @@ function* extractAllCoordinates(inputFiles) {
   }
 }
 
-async function downloadTiles(inputFiles, source, minZoom, maxZoom, output) {
+async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
   const coordinates = extractAllCoordinates(inputFiles);
   const tileDefinitions = extractUniqueTileDefinitions(coordinates, minZoom, maxZoom);
   const promises = [];
+  await packager.init();
   for (const td of tileDefinitions) {
     const tilePromise = (async () => {
+      console.log(`Start handling ${td.toString()}`);
       const data = await source.getTileData(td);
-      console.log(data.length);
+      await packager.addTile(td, data);
+      console.log(`Done handling ${td.toString()}`);
     })();
     promises.push(tilePromise);
   }
+
   await Promise.all(promises);
+  await packager.close();
   console.log('done');
 }
 
