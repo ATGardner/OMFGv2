@@ -24,6 +24,11 @@ describe('Utils', () => {
       testReadGeoJson(input);
     });
 
+    it('reads GeoJson from kmz file', () => {
+      const input = 'test/inputs/simple.kmz';
+      testReadGeoJson(input);
+    });
+
     it('throws when trying to read an unrecognized file type', done => {
       try {
         const input = 'test/inputs/simple.xxx';

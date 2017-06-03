@@ -1,19 +1,39 @@
-const fetch = require('node-fetch');
 const {readFileSync} = require('fs');
 const {extname} = require('path');
+const AdmZip = require('adm-zip');
+const fetch = require('node-fetch');
 const {gpx, kml} = require('@mapbox/togeojson');
 const {DOMParser} = require('xmldom');
 const Tile = require('./Tile');
 
-function readGeoJson(fileName) {
+function readDocFromFile(fileName) {
   const text = readFileSync(fileName, 'utf8');
-  const doc = new DOMParser().parseFromString(text);
+  return new DOMParser().parseFromString(text);
+}
+
+function readGeoJson(fileName) {
   const ext = extname(fileName);
   switch (ext) {
-    case '.gpx':
+    case '.gpx': {
+      const doc = readDocFromFile(fileName);
       return gpx(doc);
-    case '.kml':
+    }
+    case '.kml': {
+      const doc = readDocFromFile(fileName);
       return kml(doc);
+    }
+    case '.kmz': {
+      const zip = new AdmZip(fileName);
+      const zipEntries = zip.getEntries();
+      const docEntry = zipEntries.find(({name}) => extname(name) === '.kml');
+      if (!docEntry) {
+        throw new Error('KMZ file is invalid');
+      }
+
+      const kmlString = zip.readAsText(docEntry);
+      const doc = new DOMParser().parseFromString(kmlString);
+      return kml(doc);
+    }
     default:
       throw new Error('Unrecognized file type. Use only gpx/kml files.');
   }
