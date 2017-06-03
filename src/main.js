@@ -30,7 +30,10 @@ async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
     const tilePromise = (async () => {
       console.log(`Start handling ${td.toString()}`);
       const data = await source.getTileData(td);
-      await packager.addTile(td, data);
+      if (data) {
+        await packager.addTile(td, data);
+      }
+
       console.log(`Done handling ${td.toString()}`);
     })();
     promises.push(tilePromise);
