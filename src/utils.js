@@ -1,9 +1,9 @@
-const {readFileSync} = require('fs');
-const {extname} = require('path');
+const { existsSync, mkdirSync, readFileSync } = require('fs');
+const { dirname, extname, normalize, resolve, relative, parse } = require('path');
 const AdmZip = require('adm-zip');
 const fetch = require('node-fetch');
-const {gpx, kml} = require('@mapbox/togeojson');
-const {DOMParser} = require('xmldom');
+const { gpx, kml } = require('@mapbox/togeojson');
+const { DOMParser } = require('xmldom');
 const Tile = require('./Tile');
 
 function readDocFromFile(fileName) {
@@ -25,7 +25,7 @@ function readGeoJson(fileName) {
     case '.kmz': {
       const zip = new AdmZip(fileName);
       const zipEntries = zip.getEntries();
-      const docEntry = zipEntries.find(({name}) => extname(name) === '.kml');
+      const docEntry = zipEntries.find(({ name }) => extname(name) === '.kml');
       if (!docEntry) {
         throw new Error('KMZ file is invalid');
       }
@@ -40,7 +40,7 @@ function readGeoJson(fileName) {
 }
 
 function* extractCoordinates(json) {
-  const {type, coordinates} = json;
+  const { type, coordinates } = json;
   switch (type) {
     case 'Point':
       return yield coordinates;
@@ -63,17 +63,17 @@ function* extractCoordinates(json) {
 
       return;
     case 'GeometryCollection':
-      const {geometries} = json;
+      const { geometries } = json;
       for (const geometry of geometries) {
         yield* extractCoordinates(geometry);
       }
 
       return;
     case 'Feature':
-      const {geometry} = json;
+      const { geometry } = json;
       return yield* extractCoordinates(geometry);
     case 'FeatureCollection':
-      const {features} = json;
+      const { features } = json;
       for (const feature of features) {
         yield* extractCoordinates(feature);
       }
@@ -99,7 +99,8 @@ function coordinates2Tile([lon, lat], zoom) {
 let counter = -1;
 
 function buildTileUrl(addressTemplate, tile) {
-  return addressTemplate.replace(/{x}/, tile.x)
+  return addressTemplate
+    .replace(/{x}/, tile.x)
     .replace(/{y}/, tile.y)
     .replace(/{zoom}/, tile.zoom)
     .replace(/\[(.*)]/, (match, subDomains) => {
@@ -117,10 +118,18 @@ async function downloadTile(address) {
   return response.buffer();
 }
 
+function ensurePath(filename) {
+  const path = dirname(filename);
+  if (!existsSync(path)) {
+    mkdirSync(path);
+  }
+}
+
 module.exports = {
   readGeoJson,
   extractCoordinates,
   coordinates2Tile,
   buildTileUrl,
-  downloadTile
+  downloadTile,
+  ensurePath
 };

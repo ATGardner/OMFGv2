@@ -1,5 +1,6 @@
-const {promisify} = require('util');
+const { promisify } = require('util');
 const sqlite3 = require('sqlite3');
+const { ensurePath } = require('./utils');
 
 function promisifyFunctions(source, target, ...fnNames) {
   for (const fnName of fnNames) {
@@ -28,9 +29,17 @@ class Statement {
 
 class Database {
   constructor(filename = ':memory:', mode = sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE) {
+    if (filename !== ':memory:') {
+      ensurePath(filename);
+    }
+
     this.db = new sqlite3.Database(filename, mode);
     this.configure = this.db.configure.bind(this.db);
     promisifyFunctions(this.db, this, 'close', 'run', 'get', 'all', 'exec');
+  }
+
+  get open() {
+    return this.db.open;
   }
 
   init() {

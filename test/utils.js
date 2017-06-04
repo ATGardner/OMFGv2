@@ -1,10 +1,11 @@
+const { existsSync, rmdirSync } = require('fs');
 const chai = require('chai');
 const chaiString = require('chai-string');
-const {readGeoJson, extractCoordinates, coordinates2Tile, buildTileUrl} = require('../src/utils');
+const { readGeoJson, extractCoordinates, coordinates2Tile, buildTileUrl, ensurePath } = require('../src/utils');
 const Tile = require('../src/Tile');
 
 chai.use(chaiString);
-const {expect} = chai;
+const { expect } = chai;
 
 describe('Utils', () => {
   describe('readGeoJson', () => {
@@ -183,7 +184,7 @@ describe('Utils', () => {
             },
             properties: {
               prop0: 'value0',
-              prop1: {this: 'that'}
+              prop1: { this: 'that' }
             }
           }
         ]
@@ -219,7 +220,7 @@ describe('Utils', () => {
       const sourceTemplate = 'http://a.tile.openstreetmap.org/{zoom}/{x}/{y}.png';
       const tile = new Tile(1, 2, 3);
       const result = buildTileUrl(sourceTemplate, tile);
-      expect(result).to.equal('http://a.tile.openstreetmap.org/3/1/2.png')
+      expect(result).to.equal('http://a.tile.openstreetmap.org/3/1/2.png');
     });
 
     it('creates the 2nd address using the 2nd sub domain', () => {
@@ -227,7 +228,7 @@ describe('Utils', () => {
       const tile = new Tile(1, 2, 3);
       buildTileUrl(sourceTemplate, tile);
       const result = buildTileUrl(sourceTemplate, tile);
-      expect(result).to.equal('http://b.tile.openstreetmap.org/3/1/2.png')
+      expect(result).to.equal('http://b.tile.openstreetmap.org/3/1/2.png');
     });
 
     it('creates the 3rd address using the 1st sub domain', () => {
@@ -236,7 +237,25 @@ describe('Utils', () => {
       buildTileUrl(sourceTemplate, tile);
       buildTileUrl(sourceTemplate, tile);
       const result = buildTileUrl(sourceTemplate, tile);
-      expect(result).to.equal('http://a.tile.openstreetmap.org/3/1/2.png')
+      expect(result).to.equal('http://a.tile.openstreetmap.org/3/1/2.png');
+    });
+  });
+
+  describe('ensurePath', () => {
+    afterEach(() => {
+      if (existsSync('test-subfolder')) {
+        rmdirSync('test-subfolder');
+      }
+    });
+
+    it('does not throw on existing folders', () => {
+      ensurePath('../test');
+    });
+
+    it('creates a new sub folder', () => {
+      ensurePath('test-subfolder/somefile');
+      const exists = existsSync('test-subfolder');
+      expect(exists).to.be.true;
     });
   });
 });

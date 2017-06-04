@@ -1,24 +1,42 @@
+const { existsSync, readdirSync, rmdirSync, unlinkSync } = require('fs');
 const chai = require('chai');
 const chaiString = require('chai-string');
 const Database = require('../src/sqlite3-async');
 
 chai.use(chaiString);
-const {expect} = chai;
+const { expect } = chai;
+
+let db;
 
 describe('sqlite-async', () => {
+  afterEach(async () => {
+    if (db && db.open) {
+      await db.close();
+    }
+
+    if (existsSync('test-subfolder')) {
+      const fileNames = readdirSync('test-subfolder');
+      for (const fileName of fileNames) {
+        unlinkSync(`test-subfolder/${fileName}`);
+      }
+
+      rmdirSync('test-subfolder');
+    }
+  });
+
   it('opens in memory database without parameters', () => {
-    const db = new Database();
+    db = new Database();
     return db.init();
   });
 
   it('closes in memory database', async () => {
-    const db = new Database();
+    db = new Database();
     await db.init();
     return db.close();
   });
 
   it('fails creating a database with an illegal filename', async () => {
-    const db = new Database('?');
+    db = new Database('?');
     try {
       await db.init();
       throw new Error('Should have thrown an error');
@@ -28,13 +46,13 @@ describe('sqlite-async', () => {
   });
 
   it('runs a simple create table', async () => {
-    const db = new Database();
+    db = new Database();
     await db.init();
     return db.run('CREATE TABLE lorem (info TEXT)');
   });
 
   it('runs a simple get sql', async () => {
-    const db = new Database();
+    db = new Database();
     await db.init();
     await db.run('CREATE TABLE lorem (info TEXT)');
     const row = await db.run('SELECT * FROM lorem');
@@ -42,10 +60,15 @@ describe('sqlite-async', () => {
   });
 
   it('closes db after insert', async () => {
-    const db = new Database();
+    db = new Database();
     await db.init();
     await db.run('CREATE TABLE lorem (info TEXT)');
-    await db.run('INSERT INTO lorem (info) VALUES ($info)', {$info: 'blah'});
+    await db.run('INSERT INTO lorem (info) VALUES ($info)', { $info: 'blah' });
     await db.close();
+  });
+
+  it('automatically creates folders for database files', () => {
+    db = new Database('test-subfolder/test-file');
+    return db.init();
   });
 });
