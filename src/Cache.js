@@ -1,7 +1,12 @@
+const { join } = require('path');
 const Database = require('./sqlite3-async');
 
 class Cache {
   constructor(filename) {
+    if (filename) {
+     filename = join('cache', filename);
+    }
+
     this.db = new Database(filename);
   }
 
@@ -14,20 +19,20 @@ class Cache {
     this.selectStatement = await this.db.prepare('SELECT tile_data, last_check, etag FROM tiles WHERE tile_column = $tile_column AND tile_row = $tile_row AND zoom_level = $zoom_level;');
   }
 
-  addTile(tile, $tile_data, $last_check, $etag) {
+  addTile(tile, data, lastCheck, etag) {
     return this.insertStatement.run({
       $tile_column: tile.x,
       $tile_row: tile.y,
       $zoom_level: tile.zoom,
-      $tile_data,
-      $last_check: $last_check,
-      $etag
+      $tile_data: data,
+      $last_check: lastCheck,
+      $etag: etag
     });
   }
 
-  updateLastCheck(tile, $last_check) {
+  updateLastCheck(tile, lastCheck) {
     return this.updateLastCheckStatement.run({
-      $last_check: $last_check,
+      $last_check: lastCheck,
       $tile_column: tile.x,
       $tile_row: tile.y,
       $zoom_level: tile.zoom
@@ -41,10 +46,12 @@ class Cache {
       $zoom_level: tile.zoom
     });
     if (row) {
-      row.last_check = new Date(row.last_check);
+      return {
+        data: row.tile_data,
+        lastCheck: new Date(row.last_check),
+        etag: row.etag
+      };
     }
-
-    return row;
   }
 
   async close() {

@@ -8,6 +8,12 @@ const { expect } = chai;
 
 let db;
 
+function delay(ms) {
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
+}
+
 describe('sqlite-async', () => {
   afterEach(async () => {
     if (db && db.open) {
@@ -71,4 +77,11 @@ describe('sqlite-async', () => {
     db = new Database('test-subfolder/test-file');
     return db.init();
   });
+
+  it('returns from init even after a delay', async () => {
+    db = new Database();
+    await delay(50);
+    expect(db.db.open).to.be.true;
+    return db.init();
+  })
 });

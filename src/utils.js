@@ -109,13 +109,27 @@ function buildTileUrl(addressTemplate, tile) {
     });
 }
 
-async function downloadTile(address) {
-  const response = await fetch(address);
+async function downloadTile(address, etag) {
+  const options = {
+    headers: {}
+  };
+  if (etag) {
+    options.headers['If-None-Match'] =  etag;
+  }
+
+  const response = await fetch(address, options);
+  etag = response.headers.get('etag');
+  const lastCheck = response.headers.get('date');
+  if (response.status === 304) {
+    return {lastCheck, etag};
+  }
+
   if (!response.ok) {
     throw new Error(response.statusText);
   }
 
-  return response.buffer();
+  const data = await response.buffer();
+  return {data, lastCheck, etag};
 }
 
 function ensurePath(filename) {

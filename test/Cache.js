@@ -24,14 +24,14 @@ describe('Cache', () => {
     const cache = new Cache();
     const tile = new Tile(1, 2, 3);
     await cache.init();
-    const tile_data = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
-    const last_check = new Date();
+    const data = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
+    const lastCheck = new Date();
     const etag = 'etag';
-    await cache.addTile(tile, tile_data, last_check, etag);
+    await cache.addTile(tile, data, lastCheck, etag);
     const result = await cache.getTile(tile);
     expect(result).to.deep.equal({
-      tile_data,
-      last_check,
+      data,
+      lastCheck,
       etag
     });
   });
@@ -40,16 +40,16 @@ describe('Cache', () => {
     const cache = new Cache();
     const tile = new Tile(1, 2, 3);
     await cache.init();
-    const tile_data = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
-    const last_check = new Date();
+    const data = Buffer.from([0x62, 0x75, 0x66, 0x66, 0x65, 0x72]);
+    const lastCheck = new Date();
     const etag = 'etag';
-    await cache.addTile(tile, tile_data, last_check, etag);
-    const new_last_check = new Date('2017-01-01');
-    await cache.updateLastCheck(tile, new_last_check);
+    await cache.addTile(tile, data, lastCheck, etag);
+    const newLastCheck = new Date('2017-01-01');
+    await cache.updateLastCheck(tile, newLastCheck);
     const result = await cache.getTile(tile);
     expect(result).to.deep.equal({
-      tile_data,
-      last_check: new_last_check,
+      data,
+      lastCheck: newLastCheck,
       etag
     });
   })

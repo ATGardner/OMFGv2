@@ -33,7 +33,15 @@ class Database {
       ensurePath(filename);
     }
 
-    this.db = new sqlite3.Database(filename, mode);
+    this.initPromise = new Promise((resolve, reject) => {
+      this.db = new sqlite3.Database(filename, mode, error => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
     this.configure = this.db.configure.bind(this.db);
     promisifyFunctions(this.db, this, 'close', 'run', 'get', 'all', 'exec');
   }
@@ -43,10 +51,7 @@ class Database {
   }
 
   init() {
-    return new Promise((resolve, reject) => {
-      this.db.on('error', reject);
-      this.db.on('open', resolve);
-    });
+    return this.initPromise;
   }
 
   each(sql, callback, ...params) {
