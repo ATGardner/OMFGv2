@@ -109,7 +109,7 @@
   },
   {
     "Name": "NZ - Topo50 Maps",
-    "Address": "http://tiles-[abcd].data-cdn.linz.govt.nz/services;key=65bc0122063d4dbebe7a16f80eb5f97e/tiles/v4/layer=2343/EPSG:3857/{z}/{x}/{y}.png",
+    "Address": "http://tiles-[abcd].data-cdn.linz.govt.nz/services;key=65bc0122063d4dbebe7a16f80eb5f97e/tiles/v4/layer=767/EPSG:3857/{z}/{x}/{y}.png",
     "minZoom": 0,
     "maxZoom": 20,
     "attribution": "CC-By Land Information New Zealand. This product uses data sourced from Landcare Research under CC-BY, http://creativecommons.org/licenses/by/3.0/nz/",
@@ -117,7 +117,7 @@
   },
   {
     "Name": "NZ - Topo250 Maps",
-    "Address": "http://tiles-[abcd].data-cdn.linz.govt.nz/services;key=65bc0122063d4dbebe7a16f80eb5f97e/tiles/v4/layer=2324/EPSG:3857/{z}/{x}/{y}.png",
+    "Address": "http://tiles-[abcd].data-cdn.linz.govt.nz/services;key=65bc0122063d4dbebe7a16f80eb5f97e/tiles/v4/layer=798/EPSG:3857/{z}/{x}/{y}.png",
     "minZoom": 0,
     "maxZoom": 20,
     "attribution": "CC-By Land Information New Zealand. This product uses data sourced from Landcare Research under CC-BY, http://creativecommons.org/licenses/by/3.0/nz/",

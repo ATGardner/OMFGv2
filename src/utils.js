@@ -1,7 +1,8 @@
 const { existsSync, mkdirSync, readFileSync } = require('fs');
-const { dirname, extname, normalize, resolve, relative, parse } = require('path');
+const { dirname, extname } = require('path');
 const AdmZip = require('adm-zip');
 const fetch = require('node-fetch');
+const winston = require('winston');
 const { gpx, kml } = require('@mapbox/togeojson');
 const { DOMParser } = require('xmldom');
 const Tile = require('./Tile');
@@ -102,14 +103,14 @@ function buildTileUrl(addressTemplate, tile) {
   return addressTemplate
     .replace(/{x}/, tile.x)
     .replace(/{y}/, tile.y)
-    .replace(/{zoom}/, tile.zoom)
+    .replace(/{zoom}|{z}/, tile.zoom)
     .replace(/\[(.*)]/, (match, subDomains) => {
       counter = (counter + 1) % subDomains.length;
       return subDomains[counter];
     });
 }
 
-async function downloadTile(address, etag) {
+async function downloadTile(address, etag, retry = 0) {
   const options = {
     headers: {}
   };
@@ -117,19 +118,29 @@ async function downloadTile(address, etag) {
     options.headers['If-None-Match'] =  etag;
   }
 
-  const response = await fetch(address, options);
-  etag = response.headers.get('etag');
-  const lastCheck = response.headers.get('date');
-  if (response.status === 304) {
-    return {lastCheck, etag};
-  }
+  try {
+    const response = await fetch(address, options);
+    etag = response.headers.get('etag');
+    const lastCheck = response.headers.get('date');
+    if (response.status === 304) {
+      return {lastCheck, etag};
+    }
 
-  if (!response.ok) {
-    throw new Error(response.statusText);
-  }
+    if (!response.ok) {
+      throw new Error(response.statusText);
+    }
 
-  const data = await response.buffer();
-  return {data, lastCheck, etag};
+    const data = await response.buffer();
+    return {data, lastCheck, etag};
+  } catch (e) {
+    if (e.code === 'ECONNRESET' && retry < 2) {
+      retry += 1;
+      winston.warn(`Retrying ${address}, ${retry} attempt`);
+      return downloadTile(address, etag, retry);
+    }
+
+    throw e;
+  }
 }
 
 function ensurePath(filename) {

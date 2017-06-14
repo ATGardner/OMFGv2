@@ -1,3 +1,4 @@
+const winston = require('winston');
 const { readGeoJson, extractCoordinates, coordinates2Tile } = require('./utils');
 
 function* extractUniqueTileDefinitions(coordinates, minZoom, maxZoom) {
@@ -22,31 +23,31 @@ function* extractAllCoordinates(inputFiles) {
 }
 
 async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
-  try {
-    const coordinates = extractAllCoordinates(inputFiles);
-    const tileDefinitions = extractUniqueTileDefinitions(coordinates, minZoom, maxZoom);
-    const promises = [];
-    await source.init();
-    await packager.init();
-    for (const td of tileDefinitions) {
-      const tilePromise = (async () => {
-        console.log(`Start handling ${td.toString()}`);
-        const data = await source.getTileData(td);
-        if (data) {
-          await packager.addTile(td, data);
-        }
+  const coordinates = extractAllCoordinates(inputFiles);
+  const tileDefinitions = extractUniqueTileDefinitions(coordinates, minZoom, maxZoom);
+  const promises = [];
+  await source.init();
+  await packager.init();
+  let total = 0;
+  let success = 0;
+  for (const td of tileDefinitions) {
+    const tilePromise = (async () => {
+      total += 1;
+      winston.verbose(`Start handling ${td.toString()}, ${success}/${total}`);
+      const data = await source.getTileData(td);
+      if (data) {
+        await packager.addTile(td, data);
+        success += 1;
+      }
 
-        console.log(`Done handling ${td.toString()}`);
-      })();
-      promises.push(tilePromise);
-    }
-
-    await Promise.all(promises);
-    await packager.close();
-    console.log('done');
-  } catch (error) {
-    console.error(error);
+      winston.verbose(`Done handling ${td.toString()}, ${success}/${total}`);
+    })();
+    promises.push(tilePromise);
   }
+
+  await Promise.all(promises);
+  await packager.close();
+  winston.verbose(`Finished getting ${success}/${total} tiles`);
 }
 
 module.exports = {

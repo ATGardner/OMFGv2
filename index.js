@@ -1,9 +1,11 @@
 const { extname, basename } = require('path');
+const winston = require('winston');
 const { downloadTiles } = require('./src/main');
 const { getPackager } = require('./src/Packager');
 const Source = require('./src/Source');
 const sources = require('./sources.json');
 
+winston.level = 'verbose';
 const {
   inputFiles,
   source,
@@ -73,9 +75,10 @@ function generateOutput([firstInput], source, minZoom, maxZoom) {
 
 (async function() {
   try {
+    winston.info(`Generating tiles, inputFiles: ${JSON.stringify(inputFiles)}, source: ${source.Name}, minZoom: ${minZoom}, maxZoom: ${maxZoom}, target: ${target}`);
     const packager = getPackager(target, output);
     await downloadTiles(inputFiles, source, minZoom, maxZoom, packager);
   } catch (error) {
-    console.error(error);
+    winston.error(`Failed generating tiles`, error);
   }
 })();

@@ -1,4 +1,5 @@
 const moment = require('moment');
+const winston = require('winston');
 const Cache = require('./Cache');
 const {buildTileUrl, downloadTile} = require('./utils');
 
@@ -32,7 +33,7 @@ class Source {
       await this.updateCache(tile, data, newLastCheck, newEtag);
       return data;
     } catch (error) {
-      console.error(`Failed getting tile ${tile.toString()} data, error: ${error.message}`);
+      winston.error(`Failed getting tile ${tile.toString()} data`, error.message);
     }
   }
 
