@@ -1,8 +1,8 @@
 const { extname, basename } = require('path');
 const winston = require('winston');
 const { downloadTiles } = require('./src/main');
-const { getPackager } = require('./src/Packager');
-const Source = require('./src/Source');
+const { getPackager } = require('./src/packagers');
+const {getSource} = require('./src/sources');
 const sources = require('./sources.json');
 
 winston.level = 'verbose';
@@ -34,7 +34,7 @@ const {
           throw new Error(`Could not find source "${arg}"`);
         }
 
-        return new Source(sourceDescriptor);
+        return getSource(sourceDescriptor);
       },
       demandOption: true,
       describe: 'Source tile server address',

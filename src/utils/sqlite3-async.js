@@ -1,6 +1,6 @@
 const { promisify } = require('util');
 const sqlite3 = require('sqlite3');
-const { ensurePath } = require('./utils');
+const { ensurePath } = require('./index');
 
 function promisifyFunctions(source, target, ...fnNames) {
   for (const fnName of fnNames) {

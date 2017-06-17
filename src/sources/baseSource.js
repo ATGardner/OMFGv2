@@ -1,7 +1,7 @@
 const moment = require('moment');
 const winston = require('winston');
-const Cache = require('./Cache');
-const {buildTileUrl, downloadTile} = require('./utils');
+const Cache = require('./cache');
+const {buildTileUrl, downloadTile} = require('../utils');
 
 class Source {
   constructor(sourceDescriptor) {

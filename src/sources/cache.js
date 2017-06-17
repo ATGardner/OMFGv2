@@ -1,5 +1,5 @@
 const { join } = require('path');
-const Database = require('./sqlite3-async');
+const Database = require('../utils/sqlite3-async');
 
 class Cache {
   constructor(filename) {

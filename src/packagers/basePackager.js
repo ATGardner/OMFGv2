@@ -1,6 +1,6 @@
-const Database = require('./sqlite3-async');
+const Database = require('../utils/sqlite3-async');
 
-class Packager {
+class BasePackager {
   constructor(filename) {
     this.db = new Database(filename);
   }
@@ -32,19 +32,4 @@ class Packager {
   }
 }
 
-class MBTilesPackager extends Packager {
-
-}
-
-function getPackager(format, output) {
-  switch (format){
-    case 'MBTiles':
-      return new MBTilesPackager(output);
-    default:
-      throw new Error(`Unknown format type "${format}"`);
-  }
-}
-
-module.exports = {
-  getPackager
-};
+module.exports = BasePackager;
