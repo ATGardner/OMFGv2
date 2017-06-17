@@ -3,7 +3,7 @@ const winston = require('winston');
 const Cache = require('./cache');
 const {buildTileUrl, downloadTile} = require('../utils');
 
-class Source {
+class WMTSSource {
   constructor(sourceDescriptor) {
     Object.assign(this, sourceDescriptor);
     this.cache = new Cache(this.Name);
@@ -42,4 +42,4 @@ class Source {
   }
 }
 
-module.exports = Source;
+module.exports = WMTSSource;

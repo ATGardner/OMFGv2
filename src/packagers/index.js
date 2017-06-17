@@ -1,11 +1,11 @@
 const BasePackager = require('./basePackager');
 
-function getPackager(format, output) {
-  switch (format){
+function getPackager(outputType, output) {
+  switch (outputType){
     case 'MBTiles':
       return new BasePackager(output);
     default:
-      throw new Error(`Unknown format type "${format}"`);
+      throw new Error(`Unknown format type "${outputType}"`);
   }
 }
 
