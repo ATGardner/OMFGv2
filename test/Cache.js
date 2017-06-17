@@ -1,7 +1,7 @@
 const chai = require('chai');
 const chaiString = require('chai-string');
-const Cache = require('../src/Cache');
-const Tile = require('../src/Tile');
+const Cache = require('../src/sources/cache');
+const Tile = require('../src/utils/Tile');
 
 chai.use(chaiString);
 const {expect} = chai;

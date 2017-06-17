@@ -2,7 +2,7 @@ const { existsSync, rmdirSync } = require('fs');
 const chai = require('chai');
 const chaiString = require('chai-string');
 const { readGeoJson, extractCoordinates, coordinates2Tile, buildTileUrl, ensurePath } = require('../src/utils');
-const Tile = require('../src/Tile');
+const Tile = require('../src/utils/Tile');
 
 chai.use(chaiString);
 const { expect } = chai;

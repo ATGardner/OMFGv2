@@ -1,7 +1,7 @@
 const { existsSync, readdirSync, rmdirSync, unlinkSync } = require('fs');
 const chai = require('chai');
 const chaiString = require('chai-string');
-const Database = require('../src/sqlite3-async');
+const Database = require('../src/utils/sqlite3-async');
 
 chai.use(chaiString);
 const { expect } = chai;
