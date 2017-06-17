@@ -28,7 +28,7 @@ const {
     },
     st: {
       alias: 'sourceType',
-      choices: ['WMTS', 'FS', 'MB'],
+      choices: ['Maperitive', 'MB', 'FS', 'WMTS'],
       default: 'WMTS'
     },
     s: {

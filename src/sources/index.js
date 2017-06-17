@@ -1,4 +1,5 @@
 const sources = require('./sources.json');
+const MaperitiveSource = require('./maperitiveSource');
 const MBSource = require('./mbSource');
 const FSSource = require('./fsSource');
 const WMTSSource = require('./wmtsSource');
@@ -6,6 +7,8 @@ const WMTSSource = require('./wmtsSource');
 module.exports = {
   getSource(sourceType, source) {
     switch (sourceType) {
+      case 'Maperitive':
+        return new MaperitiveSource(source);
       case 'MB':
         return new MBSource(source);
       case 'FS':

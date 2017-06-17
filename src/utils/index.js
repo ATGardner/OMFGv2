@@ -123,6 +123,7 @@ async function downloadTile(address, etag, retry = 0) {
     etag = response.headers.get('etag');
     const lastCheck = response.headers.get('date');
     if (response.status === 304) {
+      winston.verbose('etag matched, skipped getting data');
       return {lastCheck, etag};
     }
 
@@ -131,6 +132,7 @@ async function downloadTile(address, etag, retry = 0) {
     }
 
     const data = await response.buffer();
+    winston.verbose('Got data from server');
     return {data, lastCheck, etag};
   } catch (e) {
     if (e.code === 'ECONNRESET' && retry < 2) {

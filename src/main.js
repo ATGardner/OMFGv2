@@ -38,13 +38,15 @@ async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
       if (data) {
         await packager.addTile(td, data);
         success += 1;
+        winston.verbose(`Done handling ${td.toString()}, ${success}/${total}`);
+      } else {
+        winston.warn(`Failed handling ${td.toString()}, ${success}/${total}`);
       }
-
-      winston.verbose(`Done handling ${td.toString()}, ${success}/${total}`);
     })();
     promises.push(tilePromise);
   }
 
+  source.generateAllTiles();
   await Promise.all(promises);
   await packager.close();
   winston.verbose(`Finished getting ${success}/${total} tiles`);

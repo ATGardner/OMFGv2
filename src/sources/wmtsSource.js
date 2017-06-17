@@ -24,6 +24,7 @@ class WMTSSource {
   async getTileData(tile) {
     const {data, lastCheck = 0, etag} = await this.cache.getTile(tile) || {};
     if (moment().subtract(1, 'day').isBefore(lastCheck)) {
+      winston.verbose(`Got tile ${tile.toString()} from cache`);
       return data;
     }
 

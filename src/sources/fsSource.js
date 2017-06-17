@@ -1,7 +1,8 @@
-const { readFile } = require('fs');
+const { exists, readFile } = require('fs');
 const { join } = require('path');
 const { promisify } = require('util');
 
+const existsAsync = promisify(exists);
 const readFileAsync = promisify(readFile);
 
 class FSSource {
@@ -15,7 +16,8 @@ class FSSource {
 
   async getTileData(tile) {
     const path = join(this.basePath, `${tile.zoom}`, `${tile.x}`, `${tile.y}.png`);
-    return readFileAsync(path);
+    const exists = await existsAsync(path);
+    return exists && readFileAsync(path);
   }
 }
 

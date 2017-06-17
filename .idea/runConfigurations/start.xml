@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="start" type="NodeJSConfigurationType" factoryName="Node.js" path-to-node="project" path-to-js-file="index.js" application-parameters="-i &quot;D:\Users\Noam\Google Drive\Hiking\GPS Data\Te Araora\trail.gpx&quot; --min 10 --max 10 -s &quot;D:\Users\Noam\Downloads\maps\OMFG\map files\NZ_North_Island.mbtiles&quot; --st MB" working-dir="$PROJECT_DIR$">
+  <configuration default="false" name="start" type="NodeJSConfigurationType" factoryName="Node.js" path-to-node="project" path-to-js-file="index.js" application-parameters="-i &quot;D:\Users\Noam\Google Drive\Hiking\GPS Data\Te Araora\trail.gpx&quot; --min 10 --max 10 -s &quot;D:\Users\Noam\Downloads\maps\OMFG\Maperitive&quot; --st Maperitive" working-dir="$PROJECT_DIR$">
     <EXTENSION ID="com.jetbrains.nodejs.remote.docker.NodeJSDockerRunConfigurationExtension">
       <option name="envVars">
         <list />
