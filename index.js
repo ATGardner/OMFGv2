@@ -28,7 +28,7 @@ const {
     },
     st: {
       alias: 'sourceType',
-      choices: ['WMTS', 'FS', 'FileSystem'],
+      choices: ['WMTS', 'FS', 'MB'],
       default: 'WMTS'
     },
     s: {

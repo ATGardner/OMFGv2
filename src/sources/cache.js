@@ -12,19 +12,19 @@ class Cache {
 
   async init() {
     await this.db.init();
-    await this.db.run('CREATE TABLE IF NOT EXISTS tiles (tile_column integer, tile_row integer, zoom_level integer, tile_data blob, last_check DATETIME, etag text, PRIMARY KEY (tile_column, tile_row, zoom_level));');
-    await this.db.run('CREATE INDEX IF NOT EXISTS IND on tiles (tile_column, tile_row, zoom_level);');
-    this.insertStatement = await this.db.prepare('INSERT or REPLACE INTO tiles (tile_column, tile_row, zoom_level, tile_data, last_check, etag) VALUES ($tile_column, $tile_row, $zoom_level, $tile_data, $last_check, $etag);');
-    this.updateLastCheckStatement = await this.db.prepare('UPDATE tiles SET last_check = $last_check where tile_column = $tile_column AND tile_row = $tile_row AND zoom_level = $zoom_level;');
-    this.selectStatement = await this.db.prepare('SELECT tile_data, last_check, etag FROM tiles WHERE tile_column = $tile_column AND tile_row = $tile_row AND zoom_level = $zoom_level;');
+    await this.db.run('CREATE TABLE IF NOT EXISTS tiles (x integer, y integer, z integer, data blob, last_check DATETIME, etag text, PRIMARY KEY (x, y, z));');
+    await this.db.run('CREATE INDEX IF NOT EXISTS IND on tiles (x, y, z);');
+    this.insertStatement = await this.db.prepare('INSERT or REPLACE INTO tiles (x, y, z, data, last_check, etag) VALUES ($x, $y, $z, $data, $last_check, $etag);');
+    this.updateLastCheckStatement = await this.db.prepare('UPDATE tiles SET last_check = $last_check where x = $x AND y = $y AND z = $z;');
+    this.selectStatement = await this.db.prepare('SELECT data, last_check, etag FROM tiles WHERE x = $x AND y = $y AND z = $z;');
   }
 
   addTile(tile, data, lastCheck, etag) {
     return this.insertStatement.run({
-      $tile_column: tile.x,
-      $tile_row: tile.y,
-      $zoom_level: tile.zoom,
-      $tile_data: data,
+      $x: tile.x,
+      $y: tile.y,
+      $z: tile.zoom,
+      $data: data,
       $last_check: lastCheck,
       $etag: etag
     });
@@ -33,21 +33,21 @@ class Cache {
   updateLastCheck(tile, lastCheck) {
     return this.updateLastCheckStatement.run({
       $last_check: lastCheck,
-      $tile_column: tile.x,
-      $tile_row: tile.y,
-      $zoom_level: tile.zoom
+      $x: tile.x,
+      $y: tile.y,
+      $z: tile.zoom
     });
   }
 
   async getTile(tile) {
     const row = await this.selectStatement.get({
-      $tile_column: tile.x,
-      $tile_row: tile.y,
-      $zoom_level: tile.zoom
+      $x: tile.x,
+      $y: tile.y,
+      $z: tile.zoom
     });
     if (row) {
       return {
-        data: row.tile_data,
+        data: row.data,
         lastCheck: new Date(row.last_check),
         etag: row.etag
       };

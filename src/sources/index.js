@@ -1,10 +1,15 @@
 const sources = require('./sources.json');
+const MBSource = require('./mbSource');
 const FSSource = require('./fsSource');
 const WMTSSource = require('./wmtsSource');
 
 module.exports = {
   getSource(sourceType, source) {
     switch (sourceType) {
+      case 'MB':
+        return new MBSource(source);
+      case 'FS':
+        return new FSSource(source);
       case 'WMTS':
         const sourceDescriptor = sources.find(({ Name }) => Name === source);
         if (!sourceDescriptor) {
@@ -12,9 +17,6 @@ module.exports = {
         }
 
         return new WMTSSource(sourceDescriptor);
-      case 'FS':
-      case 'FileSystem':
-        return new FSSource(source);
     }
   }
 };

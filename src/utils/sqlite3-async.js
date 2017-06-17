@@ -29,7 +29,7 @@ class Statement {
 
 class Database {
   constructor(filename = ':memory:', mode = sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE) {
-    if (filename !== ':memory:') {
+    if (filename !== ':memory:' && (mode & sqlite3.OPEN_CREATE)) {
       ensurePath(filename);
     }
 
