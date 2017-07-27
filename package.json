@@ -10,16 +10,21 @@
   "author": "Noam (\"Amtrak\")",
   "license": "ISC",
   "devDependencies": {
-    "chai": "^4.0.2",
+    "chai": "^4.1.0",
     "chai-string": "^1.4.0",
     "mocha": "^3.4.2"
   },
   "dependencies": {
     "@mapbox/togeojson": "^0.16.0",
     "adm-zip": "^0.4.7",
+    "http-proxy-agent": "^2.0.0",
     "moment": "^2.18.1",
     "node-fetch": "^1.7.1",
+    "p-queue": "^1.1.0",
+    "pm2": "^2.6.1",
+    "prettier": "^1.5.3",
     "sqlite3": "^3.1.8",
+    "webpack": "^3.3.0",
     "winston": "^2.3.1",
     "xmldom": "^0.1.27",
     "yargs": "^8.0.2"

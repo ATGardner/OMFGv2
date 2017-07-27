@@ -34,7 +34,7 @@ const {
     s: {
       alias: 'source',
       demandOption: true,
-      describe: 'Source tile server address',
+      describe: 'Source tile server address/Maperitive folder',
       type: 'string'
     },
     min: {

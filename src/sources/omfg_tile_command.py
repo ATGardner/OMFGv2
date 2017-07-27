@@ -8,7 +8,7 @@ from maperipy.webmaps import *
 
 available_tiles = []
 min_zoom_value = 10
-
+EARTHDATA_AUTH_TOKEN = 'WXIthpg9BGcAABQawIwAAACx'
 
 def modification_date(filename):
     t = os.path.getmtime(filename)
@@ -88,7 +88,7 @@ def get_osm_data(tile):
             App.log('OSM date is less than a day old, using it')
             return
         mdate = modification_date(osm_file)
-        diff = '[diff:"%s"];' % mdate.isoformat()
+        diff = '[diff:"%s"]' % mdate.isoformat()
     bounds = tile2bounds(tile)
     App.log('Downloading osm data diff')
     command = 'download-osm-overpass query="[timeout:1000]{0};(node({1},{2},{3},{4});rel(bn)->.x;way({1},{2},{3},{4});node(w)->.x;rel(bw););out;"'.format(
@@ -141,7 +141,7 @@ def get_min_zoom(tile):
 def generate_tiles(tile):
     min_zoom = min_zoom_value # get_min_zoom(tile)
     max_zoom = tile[2]
-    parent_tile = get_parent_tile(tile, min_zoom_value);
+    parent_tile = get_parent_tile(tile, min_zoom_value)
     bounds = tile2bounds(parent_tile) # tile2middle_bounds(tile)
     if min_zoom <= tile[2]:
         App.log('Generating tiles, bounds: %s, min_zoom: %i, max_zoom: %i' % (bounds, min_zoom, max_zoom,))
@@ -169,7 +169,8 @@ def get_tile_data(tile):
         App.log('Creating tile data for %s' % tile)
         App.log('Creating parent tile data for %s' % parent_tile)
         get_osm_data(parent_tile)
-        get_contours('VF.Alps', parent_tile)
+        App.run_command('set-setting name=user.earthdata-auth-token value=%s' % EARTHDATA_AUTH_TOKEN)
+        get_contours('SRTMV3R1', parent_tile)
         get_relief(parent_tile)
         available_tiles.append(parent_tile)
         return True;

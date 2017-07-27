@@ -30,26 +30,49 @@ async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
   await packager.init();
   let total = 0;
   let success = 0;
+  let failure = 0;
+  let inProgressTiles = new Set();
   for (const td of tileDefinitions) {
     const tilePromise = (async () => {
-      total += 1;
-      winston.verbose(`Start handling ${td.toString()}, ${success}/${total}`);
-      const data = await source.getTileData(td);
-      if (data) {
-        await packager.addTile(td, data);
-        success += 1;
-        winston.verbose(`Done handling ${td.toString()}, ${success}/${total}`);
-      } else {
-        winston.warn(`Failed handling ${td.toString()}, ${success}/${total}`);
+      try {
+        total += 1;
+        inProgressTiles.add(td.toString());
+        winston.verbose(`Start handling ${td.toString()}, ${success}/${total} (${inProgressTiles.size})`);
+        const data = await source.getTileData(td);
+        if (data) {
+          await packager.addTile(td, data);
+          success += 1;
+          winston.verbose(`Done handling ${td.toString()}, ${success}/${failure}/${success + failure}/${total} (${inProgressTiles.size})`);
+        } else {
+          failure += 1;
+          winston.warn(`Failed handling ${td.toString()}, ${success}/${failure}/${success + failure}/${total} (${inProgressTiles.size})`);
+        }
+
+        inProgressTiles.delete(td.toString());
+      } catch (error) {
+        winston.error(`Error on tile ${td.toString}`, error);
+        inProgressTiles.delete(td.toString());
+        throw error;
       }
     })();
     promises.push(tilePromise);
   }
 
-  source.generateAllTiles();
-  await Promise.all(promises);
-  await packager.close();
-  winston.verbose(`Finished getting ${success}/${total} tiles`);
+  if (source.generateAllTiles) {
+    source.generateAllTiles();
+  }
+
+  try {
+    let interval = setInterval(() => {
+      winston.verbose(`inProgressTiles: ${[...inProgressTiles]}`);
+    }, 20000);
+    await Promise.all(promises);
+    clearInterval(interval);
+    await packager.close();
+    winston.verbose(`Finished getting ${success}/${total} tiles`);
+  } catch (error) {
+    winston.error('Error on wait all', error);
+  }
 }
 
 module.exports = {

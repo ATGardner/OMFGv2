@@ -1,7 +1,7 @@
 const moment = require('moment');
 const winston = require('winston');
 const Cache = require('./cache');
-const {buildTileUrl, downloadTile} = require('../utils');
+const {buildTileUrl, addDownload} = require('../utils');
 
 class WMTSSource {
   constructor(sourceDescriptor) {
@@ -28,9 +28,9 @@ class WMTSSource {
       return data;
     }
 
-    const address = buildTileUrl(this.Address, tile);
     try {
-      const {data, lastCheck: newLastCheck, etag: newEtag} = await downloadTile(address, etag);
+      const address = buildTileUrl(this.Address, tile);
+      const {data, lastCheck: newLastCheck, etag: newEtag} = await addDownload(address, etag);
       await this.updateCache(tile, data, newLastCheck, newEtag);
       return data;
     } catch (error) {
