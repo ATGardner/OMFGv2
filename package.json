@@ -17,6 +17,7 @@
   "dependencies": {
     "@mapbox/togeojson": "^0.16.0",
     "adm-zip": "^0.4.7",
+    "geodesy": "^1.1.1",
     "http-proxy-agent": "^2.0.0",
     "moment": "^2.18.1",
     "node-fetch": "^1.7.1",

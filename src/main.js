@@ -1,16 +1,18 @@
 const winston = require('winston');
-const { readGeoJson, extractCoordinates, coordinates2Tile } = require('./utils');
+const { readGeoJson, extractCoordinates, coordinates2Tiles } = require('./utils');
 
 function* extractUniqueTileDefinitions(coordinates, minZoom, maxZoom) {
-  const tiles = new Set();
+  const ids = new Set();
   for (const coordinate of coordinates) {
-    let tile = coordinates2Tile(coordinate, maxZoom);
-    let tileId = tile.toString();
-    while (!tiles.has(tileId) && tile.zoom >= minZoom) {
-      tiles.add(tileId);
-      yield tile;
-      tile = tile.parentTile;
-      tileId = tile.toString();
+    let tiles = coordinates2Tiles(coordinate, maxZoom);
+    for (let tile of tiles) {
+      let tileId = tile.toString();
+      while (!ids.has(tileId) && tile.zoom >= minZoom) {
+        ids.add(tileId);
+        yield tile;
+        tile = tile.parentTile;
+        tileId = tile.toString();
+      }
     }
   }
 }
@@ -42,10 +44,16 @@ async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
         if (data) {
           await packager.addTile(td, data);
           success += 1;
-          winston.verbose(`Done handling ${td.toString()}, ${success}/${failure}/${success + failure}/${total} (${inProgressTiles.size})`);
+          winston.verbose(
+            `Done handling ${td.toString()}, ${success}/${failure}/${success +
+              failure}/${total} (${inProgressTiles.size})`,
+          );
         } else {
           failure += 1;
-          winston.warn(`Failed handling ${td.toString()}, ${success}/${failure}/${success + failure}/${total} (${inProgressTiles.size})`);
+          winston.warn(
+            `Failed handling ${td.toString()}, ${success}/${failure}/${success +
+              failure}/${total} (${inProgressTiles.size})`,
+          );
         }
 
         inProgressTiles.delete(td.toString());
@@ -76,5 +84,5 @@ async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
 }
 
 module.exports = {
-  downloadTiles
+  downloadTiles,
 };
