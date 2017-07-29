@@ -1,4 +1,4 @@
-const { extname, basename } = require('path');
+const { extname, basename, join } = require('path');
 const winston = require('winston');
 const { downloadTiles } = require('./src/main');
 const { getSource } = require('./src/sources');
@@ -59,7 +59,7 @@ const { inputFiles, sourceType, s, minZoom, maxZoom, o, outputType } = require('
 function generateOutput([firstInput], source, minZoom, maxZoom) {
   const ext = extname(firstInput);
   const fileName = basename(firstInput, ext);
-  return `${fileName} - ${source.Name} - ${minZoom}-${maxZoom}`;
+  return join('output', `${fileName} - ${source.Name} - ${minZoom}-${maxZoom}`);
 }
 
 (async function() {

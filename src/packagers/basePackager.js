@@ -1,7 +1,9 @@
+const {format} = require('path');
 const Database = require('../utils/sqlite3-async');
 
 class BasePackager {
   constructor(filename) {
+    filename = format({name: filename, ext: 'mbtiles'});
     this.db = new Database(filename);
   }
 
