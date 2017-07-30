@@ -42,7 +42,6 @@ def tile2bounds(tile):
     zoom = tile[2]
     nw = tile2coords(tile)
     se = tile2coords((x + 1, y + 1, zoom))
-    # return Map.create_bbox(nw[0] + 0.01, nw[1] - 0.01, se[0] - 0.01, se[1] + 0.01)
     return Map.create_bbox(nw[0], nw[1], se[0], se[1])
 
 
@@ -82,7 +81,7 @@ def get_osm_data(tile):
     diff = ''
     if os.path.exists(osm_file):
         App.log('Loading osm from file')
-        App.run_command('load-source %s' % osm_file)
+        Map.add_osm_source(osm_file)
         mtime = modification_date(osm_file)
         if datetime.datetime.now() - datetime.timedelta(days=1) < mtime:
             App.log('OSM date is less than a day old, using it')
@@ -91,11 +90,13 @@ def get_osm_data(tile):
         diff = '[diff:"%s"]' % mdate.isoformat()
     bounds = tile2bounds(tile)
     App.log('Downloading osm data diff')
-    command = 'download-osm-overpass query="[timeout:1000]{0};(node({1},{2},{3},{4});rel(bn)->.x;way({1},{2},{3},{4});node(w)->.x;rel(bw););out;"'.format(
-        diff, bounds.max_y, bounds.min_x, bounds.min_y, bounds.max_x)
+    command = 'download-osm-overpass bounds={1},{2},{3},{4} query="[timeout:1000]{0};(node($b$);rel(bn)->.x;way($b$);node(w)->.x;rel(bw););out;"'.format(
+        diff, bounds.min_x, bounds.min_y, bounds.max_x, bounds.max_y )
     App.run_command(command)
-    App.run_command("pause 30000")
-    App.run_command('export-osm %s' % osm_file)
+    last_layer_index = len(Map.layers) - 1
+    last_layer = Map.layers[last_layer_index]
+    osm = last_layer.osm
+    osm.save_xml_file(osm_file);
 
 
 def get_contours(source, tile):
@@ -169,7 +170,6 @@ def get_tile_data(tile):
         App.log('Creating tile data for %s' % tile)
         App.log('Creating parent tile data for %s' % parent_tile)
         get_osm_data(parent_tile)
-        App.run_command('set-setting name=user.earthdata-auth-token value=%s' % EARTHDATA_AUTH_TOKEN)
         get_contours('SRTMV3R1', parent_tile)
         get_relief(parent_tile)
         available_tiles.append(parent_tile)
@@ -184,6 +184,6 @@ def get_all_tiles(input_file, rules_file):
         if (get_tile_data(tile)):
             generate_tiles(tile)
 
-
+App.run_command('set-setting name=user.earthdata-auth-token value=%s' % EARTHDATA_AUTH_TOKEN)
 get_all_tiles('tiles.txt', 'Rules/IsraelHiking - en new.mrules')
 # App.exit()

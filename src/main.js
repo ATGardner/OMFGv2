@@ -4,7 +4,7 @@ const { readGeoJson, extractCoordinates, coordinates2Tiles } = require('./utils'
 function* extractUniqueTileDefinitions(coordinates, minZoom, maxZoom) {
   const ids = new Set();
   for (const coordinate of coordinates) {
-    let tiles = coordinates2Tiles(coordinate, maxZoom);
+    let tiles = coordinates2Tiles(coordinate, maxZoom, 3000);
     for (let tile of tiles) {
       let tileId = tile.toString();
       while (!ids.has(tileId) && tile.zoom >= minZoom) {
