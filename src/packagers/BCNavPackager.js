@@ -3,7 +3,7 @@ const BasePackager = require('./basePackager');
 
 class BCNavPackager extends BasePackager {
   constructor(fileName) {
-    super(format({ name: fileName, ext: '.sqlite' }));
+    super(format({ name: fileName, ext: '.sqlitedb' }));
   }
 
   async init() {
