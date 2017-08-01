@@ -45,6 +45,13 @@
     "type": "TileServer"
   },
   {
+    "Name": "MapBuilder Topo",
+    "Address": "https://caltopo.com/resource/imagery/mapbuilder/cs-60-40-c21BB6100-h22-a21-r22-t22d-m21-p21/{zoom}/{x}/{y}.png",
+    "minZoom": 5,
+    "maxZoom": 16,
+    "type": "TileServer"
+  },
+  {
     "Name": "USA Topo Maps",
     "Address": "http://server.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer/tile/{zoom}/{y}/{x}.png",
     "minZoom": 0,
