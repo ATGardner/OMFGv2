@@ -14,8 +14,26 @@ class BCNavPackager extends BasePackager {
     await this.db.run('CREATE INDEX IF NOT EXISTS IND on tiles (x, y, z, s);');
     await this.db.run('CREATE TABLE IF NOT EXISTS info (minzoom int, maxzoom int)');
     this.insertStatement = await this.db.prepare(
-      'INSERT or REPLACE INTO tiles (x, y, z, s, image) VALUES ($x, $y, $z, 0, $image);',
+      'INSERT OR REPLACE INTO tiles (x, y, z, s, image) VALUES ($x, $y, $z, 0, $image);',
     );
+    this.selectStatement = await this.db.prepare(
+      'SELECT COUNT(*) AS result FROM tiles WHERE x = $x AND y = $y and z = $z;',
+    );
+  }
+
+  async hasTile({ x, y, zoom }) {
+    if (this.newFile) {
+      return false;
+    }
+
+    const $z = 17 - zoom;
+    const asd = await this.selectStatement.get({
+      $x: x,
+      $y: y,
+      $z,
+    });
+    const result = asd.result;
+    return result === 1;
   }
 
   addTile({ x, y, zoom }, $image) {
@@ -30,8 +48,9 @@ class BCNavPackager extends BasePackager {
 
   async close() {
     await this.insertStatement.finalize();
+    await this.selectStatement.finalize();
     await this.db.run(
-      'insert into info(minzoom, maxzoom) values((select min(z) from tiles), (select max(z) from tiles));',
+      'INSERT INTO info(minzoom, maxzoom) VALUES((SELECT MIN(z) FROM tiles), (SELECT MAX(z) FROM tiles));',
     );
     await super.close();
   }

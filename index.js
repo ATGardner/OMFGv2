@@ -43,7 +43,7 @@ const { inputFiles, sourceType, s, minZoom, maxZoom, o, outputType } = require('
     },
     o: {
       alias: 'output',
-      describe: 'Reverse way sort and marker order',
+      describe: 'Output file name',
       type: 'string'
     },
     ot: {

@@ -73,11 +73,6 @@ describe('sqlite-async', () => {
     await db.close();
   });
 
-  it('automatically creates folders for database files', () => {
-    db = new Database('test-subfolder/test-file');
-    return db.init();
-  });
-
   it('returns from init even after a delay', async () => {
     db = new Database();
     await delay(50);

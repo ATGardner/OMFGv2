@@ -39,7 +39,20 @@ async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
       try {
         total += 1;
         inProgressTiles.add(td.toString());
-        winston.verbose(`Start handling ${td.toString()}, ${success}/${total} (${inProgressTiles.size})`);
+        winston.verbose(
+          `Start handling ${td.toString()}, ${success}/${failure}/${success +
+            failure}/${total} (${inProgressTiles.size})`,
+        );
+        const hasData = await packager.hasTile(td);
+        if (hasData) {
+          success += 1;
+          winston.verbose(
+            `Skipped handling ${td.toString()}, ${success}/${failure}/${success +
+              failure}/${total} (${inProgressTiles.size})`,
+          );
+          return;
+        }
+
         const data = await source.getTileData(td);
         if (data) {
           await packager.addTile(td, data);

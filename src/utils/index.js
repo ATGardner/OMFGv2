@@ -188,7 +188,9 @@ function addDownload(address, etag) {
 
 function ensurePath(filename) {
   const path = dirname(filename);
-  if (!existsSync(path)) {
+  if (existsSync(path)) {
+    return existsSync(filename);
+  } else {
     mkdirSync(path);
   }
 }

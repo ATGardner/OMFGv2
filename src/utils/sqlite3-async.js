@@ -1,6 +1,5 @@
 const { promisify } = require('util');
 const sqlite3 = require('sqlite3');
-const { ensurePath } = require('./index');
 
 function promisifyFunctions(source, target, ...fnNames) {
   for (const fnName of fnNames) {
@@ -29,10 +28,6 @@ class Statement {
 
 class Database {
   constructor(filename = ':memory:', mode = sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE) {
-    if (filename !== ':memory:' && (mode & sqlite3.OPEN_CREATE)) {
-      ensurePath(filename);
-    }
-
     this.initPromise = new Promise((resolve, reject) => {
       this.db = new sqlite3.Database(filename, mode, error => {
         if (error) {
