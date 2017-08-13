@@ -1,0 +1,12 @@
+{
+  "inputFiles": [
+    "D:\\Users\\Noam\\Google Drive\\Hiking\\GPS Data\\USA\\John Muir Trail\\John Muir Trail-17-08-01.gpx",
+    "D:\\Users\\Noam\\Google Drive\\Hiking\\GPS Data\\USA\\John Muir Trail\\Halfmile's JMT - 2015 Final Edition.kmz"
+  ],
+  "minZoom": 10,
+  "maxZoom": 11,
+  "sourceName": "MapBuilder Topo",
+  "sourceType": "WMTS",
+  "outputFile": "asd",
+  "outputType": "BCNav"
+}

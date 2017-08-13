@@ -4,6 +4,8 @@ const {getPackager} = require('./packagers');
 const {getSource} = require('./sources');
 const TilesDownloader = require('./TilesDownloader');
 
+winston.level = 'verbose';
+
 /*async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
   const coordinates = extractAllCoordinates(inputFiles);
   const tileDefinitions = extractUniqueTileDefinitions(coordinates, minZoom, maxZoom);
