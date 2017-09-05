@@ -6,7 +6,7 @@ const TilesDownloader = require('./TilesDownloader');
 
 winston.level = 'verbose';
 
-/*async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
+/* async function downloadTiles(inputFiles, source, minZoom, maxZoom, packager) {
   const coordinates = extractAllCoordinates(inputFiles);
   const tileDefinitions = extractUniqueTileDefinitions(coordinates, minZoom, maxZoom);
   const promises = [];
@@ -81,10 +81,21 @@ winston.level = 'verbose';
 function generateOutputFile([firstInput], sourceName, minZoom, maxZoom) {
   const ext = extname(firstInput);
   const fileName = basename(firstInput, ext);
-  return join('output', `${fileName} - ${sourceName.Name} - ${minZoom}-${maxZoom}`);
+  return join(
+    'output',
+    `${fileName} - ${sourceName.Name} - ${minZoom}-${maxZoom}`,
+  );
 }
 
-function downloadTiles2({inputFiles, sourceType, sourceName, minZoom, maxZoom, outputType, outputFile = generateOutputFile(inputFiles, sourceName, minZoom, maxZoom)}) {
+function downloadTiles2({
+  inputFiles,
+  sourceType,
+  sourceName,
+  minZoom,
+  maxZoom,
+  outputType,
+  outputFile = generateOutputFile(inputFiles, sourceName, minZoom, maxZoom),
+}) {
   try {
     const source = getSource(sourceType, sourceName);
     const packager = getPackager(outputType, outputFile);
@@ -93,7 +104,13 @@ function downloadTiles2({inputFiles, sourceType, sourceName, minZoom, maxZoom, o
         inputFiles,
       )}, source: ${source.Name}, minZoom: ${minZoom}, maxZoom: ${maxZoom}, outputType: ${outputType}`,
     );
-    const downloader = new TilesDownloader(inputFiles, source, packager, minZoom, maxZoom);
+    const downloader = new TilesDownloader(
+      inputFiles,
+      source,
+      packager,
+      minZoom,
+      maxZoom,
+    );
     return downloader.getTiles();
   } catch (error) {
     winston.error(`Failed generating tiles`, error);

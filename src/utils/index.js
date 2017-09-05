@@ -1,18 +1,18 @@
-const { existsSync, mkdirSync, readFileSync } = require('fs');
+const {existsSync, mkdirSync, readFileSync} = require('fs');
 // const {Agent} = require('http');
-const { dirname, extname } = require('path');
+const {dirname, extname} = require('path');
 const AdmZip = require('adm-zip');
 const fetch = require('node-fetch');
 const PQueue = require('p-queue');
 const winston = require('winston');
-const { gpx, kml } = require('@mapbox/togeojson');
-const { DOMParser } = require('xmldom');
+const {gpx, kml} = require('@mapbox/togeojson');
+const {DOMParser} = require('xmldom');
 const Tile = require('./Tile');
-const { LatLonEllipsoidal: LatLon } = require('geodesy');
+const {LatLonEllipsoidal: LatLon} = require('geodesy');
 
 // const HttpProxyAgent = require('http-proxy-agent');
 
-const queue = new PQueue({ concurrency: 10 });
+const queue = new PQueue({concurrency: 10});
 
 function delay(ms) {
   return new Promise(resolve => {
@@ -39,7 +39,7 @@ function readGeoJson(fileName) {
     case '.kmz': {
       const zip = new AdmZip(fileName);
       const zipEntries = zip.getEntries();
-      const docEntry = zipEntries.find(({ name }) => extname(name) === '.kml');
+      const docEntry = zipEntries.find(({name}) => extname(name) === '.kml');
       if (!docEntry) {
         throw new Error('KMZ file is invalid');
       }
@@ -54,7 +54,7 @@ function readGeoJson(fileName) {
 }
 
 function* extractCoordinates(json) {
-  const { type, coordinates } = json;
+  const {type, coordinates} = json;
   switch (type) {
     case 'Point':
       return yield coordinates;
@@ -76,21 +76,24 @@ function* extractCoordinates(json) {
       }
 
       return;
-    case 'GeometryCollection':
-      const { geometries } = json;
+    case 'GeometryCollection': {
+      const {geometries} = json;
       for (const geometry of geometries) {
         yield* extractCoordinates(geometry);
       }
 
       return;
-    case 'Feature':
-      const { geometry } = json;
+    }
+    case 'Feature': {
+      const {geometry} = json;
       return yield* extractCoordinates(geometry);
-    case 'FeatureCollection':
-      const { features } = json;
+    }
+    case 'FeatureCollection': {
+      const {features} = json;
       for (const feature of features) {
         yield* extractCoordinates(feature);
       }
+    }
   }
 }
 
@@ -100,7 +103,13 @@ function long2tile(lon, zoom) {
 
 function lat2tile(lat, zoom) {
   return Math.floor(
-    (1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom),
+    (1 -
+      Math.log(
+        Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180),
+      ) /
+        Math.PI) /
+      2 *
+      Math.pow(2, zoom),
   );
 }
 
@@ -158,8 +167,10 @@ async function downloadTile(address, etag, retry = 0) {
     etag = response.headers.get('etag');
     const lastCheck = response.headers.get('date');
     if (response.status === 304) {
-      winston.verbose(`etag matched, skipped getting data, address: ${address}`);
-      return { lastCheck, etag };
+      winston.verbose(
+        `etag matched, skipped getting data, address: ${address}`,
+      );
+      return {lastCheck, etag};
     }
 
     if (!response.ok) {
@@ -169,9 +180,12 @@ async function downloadTile(address, etag, retry = 0) {
     winston.verbose(`Getting response buffer, address: ${address}`);
     const data = await response.buffer();
     winston.verbose(`Got data from server, address: ${address}`);
-    return { data, lastCheck, etag };
+    return {data, lastCheck, etag};
   } catch (e) {
-    if ((e.message === 'Fiddler - Receive Failure' || e.code === 'ECONNRESET') && retry < 50) {
+    if (
+      (e.message === 'Fiddler - Receive Failure' || e.code === 'ECONNRESET') &&
+      retry < 50
+    ) {
       retry += 1;
       await delay(retry * 500);
       winston.warn(`Retrying ${address}, ${retry} attempt`);

@@ -1,9 +1,5 @@
-const { exists, existsSync, readFile, readFileSync } = require('fs');
-const { join } = require('path');
-const { promisify } = require('util');
-
-const existsAsync = promisify(exists);
-const readFileAsync = promisify(readFile);
+const {existsSync, readFileSync} = require('fs');
+const {join} = require('path');
 
 class FSSource {
   constructor(basePath) {
@@ -15,7 +11,12 @@ class FSSource {
   }
 
   getTileData(tile) {
-    const path = join(this.basePath, `${tile.zoom}`, `${tile.x}`, `${tile.y}.png`);
+    const path = join(
+      this.basePath,
+      `${tile.zoom}`,
+      `${tile.x}`,
+      `${tile.y}.png`,
+    );
     const exists = existsSync(path);
     return exists && readFileSync(path);
   }

@@ -13,13 +13,14 @@ module.exports = {
         return new MBSource(source);
       case 'FS':
         return new FSSource(source);
-      case 'WMTS':
-        const sourceDescriptor = sources.find(({ Name }) => Name === source);
+      case 'WMTS': {
+        const sourceDescriptor = sources.find(({Name}) => Name === source);
         if (!sourceDescriptor) {
           throw new Error(`Could not find WMTS source "${source}"`);
         }
 
         return new WMTSSource(sourceDescriptor);
+      }
     }
   },
 };

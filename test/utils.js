@@ -1,4 +1,4 @@
-const { existsSync, rmdirSync } = require('fs');
+const {existsSync, rmdirSync} = require('fs');
 const chai = require('chai');
 const chaiString = require('chai-string');
 const {
@@ -12,7 +12,7 @@ const {
 const Tile = require('../src/utils/Tile');
 
 chai.use(chaiString);
-const { expect } = chai;
+const {expect} = chai;
 
 describe('Utils', () => {
   describe('readGeoJson', () => {
@@ -43,7 +43,10 @@ describe('Utils', () => {
         testReadGeoJson(input);
         done(new Error('File type "xxx" is not recognizable'));
       } catch (error) {
-        expect(error).to.have.property('message', 'Unrecognized file type. Use only gpx/kml files.');
+        expect(error).to.have.property(
+          'message',
+          'Unrecognized file type. Use only gpx/kml files.',
+        );
         done();
       }
     });
@@ -82,7 +85,10 @@ describe('Utils', () => {
     it('extracts coordinates from a Polygon', () => {
       const input = {
         type: 'Polygon',
-        coordinates: [[[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]], [[20, 30], [35, 35], [30, 20], [20, 30]]],
+        coordinates: [
+          [[35, 10], [45, 45], [15, 40], [10, 20], [35, 10]],
+          [[20, 30], [35, 35], [30, 20], [20, 30]],
+        ],
       };
       const output = [...extractCoordinates(input)];
       expect(output).to.have.deep.members([
@@ -104,16 +110,32 @@ describe('Utils', () => {
         coordinates: [[10, 40], [40, 30], [20, 20], [30, 10]],
       };
       const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([[10, 40], [40, 30], [20, 20], [30, 10]]);
+      expect(output).to.have.deep.members([
+        [10, 40],
+        [40, 30],
+        [20, 20],
+        [30, 10],
+      ]);
     });
 
     it('extracts coordinates from a MultiLineString', () => {
       const input = {
         type: 'MultiLineString',
-        coordinates: [[[10, 10], [20, 20], [10, 40]], [[40, 40], [30, 30], [40, 20], [30, 10]]],
+        coordinates: [
+          [[10, 10], [20, 20], [10, 40]],
+          [[40, 40], [30, 30], [40, 20], [30, 10]],
+        ],
       };
       const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([[10, 10], [20, 20], [10, 40], [40, 40], [30, 30], [40, 20], [30, 10]]);
+      expect(output).to.have.deep.members([
+        [10, 10],
+        [20, 20],
+        [10, 40],
+        [40, 40],
+        [30, 30],
+        [40, 20],
+        [30, 10],
+      ]);
     });
 
     it('extracts coordinates from a MultiPolygon', () => {
@@ -121,7 +143,10 @@ describe('Utils', () => {
         type: 'MultiPolygon',
         coordinates: [
           [[[40, 40], [20, 45], [45, 30], [40, 40]]],
-          [[[20, 35], [10, 30], [10, 10], [30, 5], [45, 20], [20, 35]], [[30, 20], [20, 15], [20, 25], [30, 20]]],
+          [
+            [[20, 35], [10, 30], [10, 10], [30, 5], [45, 20], [20, 35]],
+            [[30, 20], [20, 15], [20, 25], [30, 20]],
+          ],
         ],
       };
       const output = [...extractCoordinates(input)];
@@ -176,7 +201,12 @@ describe('Utils', () => {
             type: 'Feature',
             geometry: {
               type: 'LineString',
-              coordinates: [[102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]],
+              coordinates: [
+                [102.0, 0.0],
+                [103.0, 1.0],
+                [104.0, 0.0],
+                [105.0, 1.0],
+              ],
             },
             properties: {
               prop0: 'value0',
@@ -187,11 +217,19 @@ describe('Utils', () => {
             type: 'Feature',
             geometry: {
               type: 'Polygon',
-              coordinates: [[[100.0, 0.0], [101.0, 0.0], [101.0, 1.0], [100.0, 1.0], [100.0, 0.0]]],
+              coordinates: [
+                [
+                  [100.0, 0.0],
+                  [101.0, 0.0],
+                  [101.0, 1.0],
+                  [100.0, 1.0],
+                  [100.0, 0.0],
+                ],
+              ],
             },
             properties: {
               prop0: 'value0',
-              prop1: { this: 'that' },
+              prop1: {this: 'that'},
             },
           },
         ],
@@ -250,14 +288,16 @@ describe('Utils', () => {
 
   describe('buildTileUrl', () => {
     it('builds a proper url when given a tile', () => {
-      const sourceTemplate = 'http://a.tile.openstreetmap.org/{zoom}/{x}/{y}.png';
+      const sourceTemplate =
+        'http://a.tile.openstreetmap.org/{zoom}/{x}/{y}.png';
       const tile = new Tile(1, 2, 3);
       const result = buildTileUrl(sourceTemplate, tile);
       expect(result).to.equal('http://a.tile.openstreetmap.org/3/1/2.png');
     });
 
     it('creates the 2nd address using the 2nd sub domain', () => {
-      const sourceTemplate = 'http://[ab].tile.openstreetmap.org/{zoom}/{x}/{y}.png';
+      const sourceTemplate =
+        'http://[ab].tile.openstreetmap.org/{zoom}/{x}/{y}.png';
       const tile = new Tile(1, 2, 3);
       buildTileUrl(sourceTemplate, tile);
       const result = buildTileUrl(sourceTemplate, tile);
@@ -265,7 +305,8 @@ describe('Utils', () => {
     });
 
     it('creates the 3rd address using the 1st sub domain', () => {
-      const sourceTemplate = 'http://[ab].tile.openstreetmap.org/{zoom}/{x}/{y}.png';
+      const sourceTemplate =
+        'http://[ab].tile.openstreetmap.org/{zoom}/{x}/{y}.png';
       const tile = new Tile(1, 2, 3);
       buildTileUrl(sourceTemplate, tile);
       buildTileUrl(sourceTemplate, tile);

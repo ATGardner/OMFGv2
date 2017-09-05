@@ -1,12 +1,12 @@
-const { join } = require('path');
-const { ensurePath } = require('../utils');
+const {join} = require('path');
+const {ensurePath} = require('../utils');
 const Database = require('../utils/sqlite3-async');
 
 class Cache {
   constructor(filename) {
     if (filename) {
-      this.newCache = !ensurePath(filename);
       filename = join('cache', filename);
+      this.newCache = !ensurePath(filename);
     }
 
     this.db = new Database(filename);
@@ -51,7 +51,7 @@ class Cache {
 
   async getTile(tile) {
     if (this.newCache) {
-      return
+      return;
     }
 
     const row = await this.selectStatement.get({

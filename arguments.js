@@ -2,7 +2,7 @@ const yargs = require('yargs')
   .usage('Usage: $0 [options]')
   .example(
     'node $0 -i "input1.gpx" "input2.kml" -s OpenStreetMap',
-    'Download tiles 10-15 along the coordinates from both input files, from OpenStreetMap default tile server'
+    'Download tiles 10-15 along the coordinates from both input files, from OpenStreetMap default tile server',
   )
   .options({
     inputFiles: {
@@ -10,42 +10,42 @@ const yargs = require('yargs')
       demandOption: true,
       describe: 'An array of input gpx/kml files',
       normalize: true,
-      type: 'array'
+      type: 'array',
     },
     sourceType: {
       alias: 'st',
       choices: ['Maperitive', 'MB', 'FS', 'WMTS'],
-      default: 'WMTS'
+      default: 'WMTS',
     },
     sourceName: {
       alias: 'sn',
       demandOption: true,
       describe: 'Source tile server name/Maperitive folder',
-      type: 'string'
+      type: 'string',
     },
     minZoom: {
       alias: 'min',
       default: 10,
       describe: 'Minimum required zoom',
-      type: 'number'
+      type: 'number',
     },
     maxZoom: {
       alias: 'max',
       default: 15,
       describe: 'Maximum required zoom',
-      type: 'number'
+      type: 'number',
     },
     outputFile: {
       alias: 'of',
       describe: 'Output file name',
       normalize: true,
-      type: 'string'
+      type: 'string',
     },
     outputType: {
       alias: 'ot',
       choices: ['MBTiles', 'BCNav', 'Both'],
-      default: 'MBTiles'
-    }
+      default: 'MBTiles',
+    },
   })
   .help('h')
   .alias('h', 'help')

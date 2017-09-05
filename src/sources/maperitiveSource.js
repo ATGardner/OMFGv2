@@ -1,8 +1,8 @@
-const { execFile } = require('child_process');
-const { writeFile } = require('fs');
-const { EOL } = require('os');
-const { join, resolve } = require('path');
-const { promisify } = require('util');
+const {execFile} = require('child_process');
+const {writeFile} = require('fs');
+const {EOL} = require('os');
+const {join, resolve} = require('path');
+const {promisify} = require('util');
 const FSSource = require('./fsSource');
 
 const execFileAsync = promisify(execFile);
@@ -33,7 +33,9 @@ class MaperitiveSource extends FSSource {
   }
 
   async generateAllTiles() {
-    const tilesToCreate = [...this.tilesToGenerate].filter(t => t.zoom === this.maxZoom);
+    const tilesToCreate = [...this.tilesToGenerate].filter(
+      t => t.zoom === this.maxZoom,
+    );
     if (tilesToCreate.length) {
       await this.createScriptInputFile(tilesToCreate);
       await this.callMaperitiveAsync();
@@ -44,14 +46,20 @@ class MaperitiveSource extends FSSource {
 
   async createScriptInputFile(tilesToCreate) {
     const tileFilename = join(this.maperitiveFolder, 'tiles.txt');
-    const tilesString = tilesToCreate.map(t => `${t.x},${t.y},${t.zoom}`).join(EOL);
+    const tilesString = tilesToCreate
+      .map(t => `${t.x},${t.y},${t.zoom}`)
+      .join(EOL);
     await writeFileAsync(tileFilename, tilesString);
   }
 
   async callMaperitiveAsync() {
     const scriptFilename = resolve('src', 'sources', 'omfg_tile_command.py');
     const maperitiveCommandLine = join(this.maperitiveFolder, 'maperitive.exe');
-    return execFileAsync(maperitiveCommandLine, [/*'-exitafter',*/ scriptFilename], { cwd: this.maperitiveFolder });
+    return execFileAsync(
+      maperitiveCommandLine,
+      [/* '-exitafter',*/ scriptFilename],
+      {cwd: this.maperitiveFolder},
+    );
   }
 }
 

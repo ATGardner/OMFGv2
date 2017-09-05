@@ -1,7 +1,7 @@
 const moment = require('moment');
 const winston = require('winston');
 const Cache = require('./cache');
-const { buildTileUrl, addDownload } = require('../utils');
+const {buildTileUrl, addDownload} = require('../utils');
 
 class WMTSSource {
   constructor(sourceDescriptor) {
@@ -22,7 +22,7 @@ class WMTSSource {
   }
 
   async getTileData(tile) {
-    const { data, lastCheck = 0, etag } = (await this.cache.getTile(tile)) || {};
+    const {data, lastCheck = 0, etag} = (await this.cache.getTile(tile)) || {};
     if (moment().subtract(1, 'day').isBefore(lastCheck)) {
       winston.verbose(`Got tile ${tile.toString()} from cache`);
       return data;
@@ -30,11 +30,17 @@ class WMTSSource {
 
     try {
       const address = buildTileUrl(this.Address, tile);
-      const { data, lastCheck: newLastCheck, etag: newEtag } = await addDownload(address, etag);
+      const {data, lastCheck: newLastCheck, etag: newEtag} = await addDownload(
+        address,
+        etag,
+      );
       await this.updateCache(tile, data, newLastCheck, newEtag);
       return data;
     } catch (error) {
-      winston.error(`Failed getting tile ${tile.toString()} data`, error.message);
+      winston.error(
+        `Failed getting tile ${tile.toString()} data`,
+        error.message,
+      );
     }
   }
 

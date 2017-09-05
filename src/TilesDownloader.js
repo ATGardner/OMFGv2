@@ -36,7 +36,11 @@ class TilesDownloader extends EventEmitter {
 
   async getTiles() {
     const coordinates = extractAllCoordinates(this.inputFiles);
-    const tileDefinitions = extractUniqueTileDefinitions(coordinates, this.minZoom, this.maxZoom);
+    const tileDefinitions = extractUniqueTileDefinitions(
+      coordinates,
+      this.minZoom,
+      this.maxZoom,
+    );
     const promises = [];
     await this.source.init();
     await this.packager.init();
@@ -51,9 +55,7 @@ class TilesDownloader extends EventEmitter {
           const data = await this.source.getTileData(td);
           if (data) {
             await this.packager.addTile(td, data);
-          } else {
           }
-
         } catch (error) {
           throw error;
         }

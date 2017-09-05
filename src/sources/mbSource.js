@@ -1,4 +1,4 @@
-const { basename, extname } = require('path');
+const {basename, extname} = require('path');
 const sqlite3 = require('sqlite3');
 const Database = require('../utils/sqlite3-async');
 

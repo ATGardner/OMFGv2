@@ -32,7 +32,7 @@ describe('Cache', () => {
     expect(result).to.deep.equal({
       data,
       lastCheck,
-      etag
+      etag,
     });
   });
 
@@ -50,7 +50,7 @@ describe('Cache', () => {
     expect(result).to.deep.equal({
       data,
       lastCheck: newLastCheck,
-      etag
+      etag,
     });
-  })
+  });
 });

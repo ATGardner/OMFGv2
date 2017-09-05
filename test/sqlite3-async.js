@@ -1,10 +1,10 @@
-const { existsSync, readdirSync, rmdirSync, unlinkSync } = require('fs');
+const {existsSync, readdirSync, rmdirSync, unlinkSync} = require('fs');
 const chai = require('chai');
 const chaiString = require('chai-string');
 const Database = require('../src/utils/sqlite3-async');
 
 chai.use(chaiString);
-const { expect } = chai;
+const {expect} = chai;
 
 let db;
 
@@ -69,7 +69,7 @@ describe('sqlite-async', () => {
     db = new Database();
     await db.init();
     await db.run('CREATE TABLE lorem (info TEXT)');
-    await db.run('INSERT INTO lorem (info) VALUES ($info)', { $info: 'blah' });
+    await db.run('INSERT INTO lorem (info) VALUES ($info)', {$info: 'blah'});
     await db.close();
   });
 
@@ -78,5 +78,5 @@ describe('sqlite-async', () => {
     await delay(50);
     expect(db.db.open).to.be.true;
     return db.init();
-  })
+  });
 });

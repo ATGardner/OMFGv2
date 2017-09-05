@@ -4,15 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "eslint-check": "eslint --print-config .eslintrc | eslint-config-prettier-check",
+    "eslint": "eslint --fix .eslintrc src/**/*.js --ignore-pattern node_modules/",
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Noam (\"Amtrak\")",
   "license": "ISC",
   "devDependencies": {
-    "chai": "^4.1.1",
+    "chai": "^4.1.2",
     "chai-string": "^1.4.0",
-    "mocha": "^3.5.0"
+    "eslint": "^4.6.1",
+    "eslint-config-google": "^0.9.1",
+    "eslint-config-prettier": "^2.4.0",
+    "eslint-plugin-prettier": "^2.2.0",
+    "mocha": "^3.5.0",
+    "prettier": "^1.6.1"
   },
   "dependencies": {
     "@mapbox/togeojson": "^0.16.0",
@@ -23,7 +30,7 @@
     "http-proxy-agent": "^2.0.0",
     "moment": "^2.18.1",
     "node-fetch": "^1.7.2",
-    "p-queue": "^1.1.0",
+    "p-queue": "^2.1.0",
     "sqlite3": "^3.1.9",
     "winston": "^2.3.1",
     "xmldom": "^0.1.27",

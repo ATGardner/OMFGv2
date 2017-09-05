@@ -1,4 +1,4 @@
-const { promisify } = require('util');
+const {promisify} = require('util');
 const sqlite3 = require('sqlite3');
 
 function promisifyFunctions(source, target, ...fnNames) {
@@ -10,7 +10,16 @@ function promisifyFunctions(source, target, ...fnNames) {
 class Statement {
   constructor(statement) {
     this.statement = statement;
-    promisifyFunctions(this.statement, this, 'bind', 'reset', 'finalize', 'run', 'get', 'all');
+    promisifyFunctions(
+      this.statement,
+      this,
+      'bind',
+      'reset',
+      'finalize',
+      'run',
+      'get',
+      'all',
+    );
   }
 
   each(callback, ...params) {
@@ -27,7 +36,10 @@ class Statement {
 }
 
 class Database {
-  constructor(filename = ':memory:', mode = sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE) {
+  constructor(
+    filename = ':memory:',
+    mode = sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
+  ) {
     this.initPromise = new Promise((resolve, reject) => {
       this.db = new sqlite3.Database(filename, mode, error => {
         if (error) {

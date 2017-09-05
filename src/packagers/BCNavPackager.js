@@ -1,9 +1,9 @@
-const { format } = require('path');
+const {format} = require('path');
 const BasePackager = require('./basePackager');
 
 class BCNavPackager extends BasePackager {
   constructor(fileName) {
-    super(format({ name: fileName, ext: '.sqlitedb' }));
+    super(format({name: fileName, ext: '.sqlitedb'}));
   }
 
   async init() {
@@ -12,7 +12,9 @@ class BCNavPackager extends BasePackager {
       'CREATE TABLE IF NOT EXISTS tiles (x int, y int, z int, s int, image blob, PRIMARY KEY (x,y,z,s));',
     );
     await this.db.run('CREATE INDEX IF NOT EXISTS IND on tiles (x, y, z, s);');
-    await this.db.run('CREATE TABLE IF NOT EXISTS info (minzoom int, maxzoom int)');
+    await this.db.run(
+      'CREATE TABLE IF NOT EXISTS info (minzoom int, maxzoom int)',
+    );
     this.insertStatement = await this.db.prepare(
       'INSERT OR REPLACE INTO tiles (x, y, z, s, image) VALUES ($x, $y, $z, 0, $image);',
     );
@@ -21,7 +23,7 @@ class BCNavPackager extends BasePackager {
     );
   }
 
-  async hasTile({ x, y, zoom }) {
+  async hasTile({x, y, zoom}) {
     if (this.newFile) {
       return false;
     }
@@ -36,7 +38,7 @@ class BCNavPackager extends BasePackager {
     return result === 1;
   }
 
-  addTile({ x, y, zoom }, $image) {
+  addTile({x, y, zoom}, $image) {
     const $z = 17 - zoom;
     return this.insertStatement.run({
       $x: x,
