@@ -8,7 +8,7 @@ from maperipy.webmaps import *
 
 available_tiles = []
 min_zoom_value = 10
-EARTHDATA_AUTH_TOKEN = 'WXIthpg9BGcAABQawIwAAACx'
+EARTHDATA_AUTH_TOKEN = 'WbDUYpg9BGcAAAcf5HAAAACx'
 
 def modification_date(filename):
     t = os.path.getmtime(filename)

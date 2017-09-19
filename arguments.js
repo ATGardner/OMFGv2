@@ -17,9 +17,13 @@ const yargs = require('yargs')
       choices: ['Maperitive', 'MB', 'FS', 'WMTS'],
       default: 'WMTS',
     },
+    sourceFile: {
+      alias: 'sf',
+      describe: 'Source file/Maperitive folder',
+      type: 'string',
+    },
     sourceName: {
       alias: 'sn',
-      demandOption: true,
       describe: 'Source tile server name/Maperitive folder',
       type: 'string',
     },

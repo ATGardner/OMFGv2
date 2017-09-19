@@ -81,23 +81,26 @@ winston.level = 'verbose';
 function generateOutputFile([firstInput], sourceName, minZoom, maxZoom) {
   const ext = extname(firstInput);
   const fileName = basename(firstInput, ext);
-  return join(
-    'output',
-    `${fileName} - ${sourceName.Name} - ${minZoom}-${maxZoom}`,
-  );
+  return join('output', `${fileName} - ${sourceName} - ${minZoom}-${maxZoom}`);
 }
 
 function downloadTiles2({
   inputFiles,
   sourceType,
   sourceName,
+  sourceFile,
   minZoom,
   maxZoom,
   outputType,
-  outputFile = generateOutputFile(inputFiles, sourceName, minZoom, maxZoom),
+  outputFile = generateOutputFile(
+    inputFiles,
+    sourceName || sourceType,
+    minZoom,
+    maxZoom,
+  ),
 }) {
   try {
-    const source = getSource(sourceType, sourceName);
+    const source = getSource(sourceType, sourceName || sourceFile);
     const packager = getPackager(outputType, outputFile);
     winston.info(
       `Generating tiles, inputFiles: ${JSON.stringify(

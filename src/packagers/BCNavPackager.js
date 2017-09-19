@@ -52,7 +52,8 @@ class BCNavPackager extends BasePackager {
     await this.insertStatement.finalize();
     await this.selectStatement.finalize();
     await this.db.run(
-      'INSERT INTO info(minzoom, maxzoom) VALUES((SELECT MIN(z) FROM tiles), (SELECT MAX(z) FROM tiles));',
+      `DELETE FROM info;
+       INSERT INTO info(minzoom, maxzoom) VALUES((SELECT MIN(z) FROM tiles), (SELECT MAX(z) FROM tiles));`,
     );
     await super.close();
   }
