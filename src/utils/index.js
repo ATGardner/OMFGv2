@@ -67,7 +67,7 @@ function* extractCoordinates(json) {
         yield* c;
       }
 
-      return;
+      return undefined;
     case 'MultiPolygon':
       for (const outer of coordinates) {
         for (const inner of outer) {
@@ -75,14 +75,14 @@ function* extractCoordinates(json) {
         }
       }
 
-      return;
+      return undefined;
     case 'GeometryCollection': {
       const {geometries} = json;
       for (const geometry of geometries) {
         yield* extractCoordinates(geometry);
       }
 
-      return;
+      return undefined;
     }
     case 'Feature': {
       const {geometry} = json;
