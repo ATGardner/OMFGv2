@@ -161,5 +161,13 @@
     "maxZoom": 20,
     "attribution": "",
     "type": "TileServer"
+  },
+  {
+    "Name": "OpenTopoMap",
+    "Address": "https://[abc].tile.opentopomap.org/{z}/{x}/{y}.png",
+    "minZoom": 1,
+    "maxZoom": 17,
+    "attribution": "",
+    "type": "TileServer"
   }
 ]

@@ -3,8 +3,8 @@
     "D:\\Users\\Noam\\Google Drive\\Hiking\\GPS Data\\USA\\Colorado Trail\\CT2017R.gpx"
   ],
   "minZoom": 10,
-  "maxZoom": 15,
-  "sourceName": "MapBuilder Topo",
-  "sourceType": "WMTS",
-  "outputType": "MBTiles"
+  "maxZoom": 10,
+  "sourceFile": "D:\\Users\\Noam\\Downloads\\maps\\OMFG\\Maperitive",
+  "sourceType": "Maperitive",
+  "outputType": "BCNav"
 }
