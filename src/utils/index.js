@@ -1,16 +1,10 @@
-const {existsSync, mkdirSync, readFileSync} = require('fs');
-// const {Agent} = require('http');
-const {dirname, extname} = require('path');
-const AdmZip = require('adm-zip');
+const {existsSync, mkdirSync} = require('fs');
+const {dirname} = require('path');
 const fetch = require('node-fetch');
 const PQueue = require('p-queue');
 const winston = require('winston');
-const {gpx, kml} = require('@mapbox/togeojson');
-const {DOMParser} = require('xmldom');
 const Tile = require('./Tile');
 const {LatLonEllipsoidal: LatLon} = require('geodesy');
-
-// const HttpProxyAgent = require('http-proxy-agent');
 
 const queue = new PQueue({concurrency: 10});
 
@@ -18,39 +12,6 @@ function delay(ms) {
   return new Promise(resolve => {
     setTimeout(resolve, ms);
   });
-}
-
-function readDocFromFile(fileName) {
-  const text = readFileSync(fileName, 'utf8');
-  return new DOMParser().parseFromString(text);
-}
-
-function readGeoJson(fileName) {
-  const ext = extname(fileName);
-  switch (ext) {
-    case '.gpx': {
-      const doc = readDocFromFile(fileName);
-      return gpx(doc);
-    }
-    case '.kml': {
-      const doc = readDocFromFile(fileName);
-      return kml(doc);
-    }
-    case '.kmz': {
-      const zip = new AdmZip(fileName);
-      const zipEntries = zip.getEntries();
-      const docEntry = zipEntries.find(({name}) => extname(name) === '.kml');
-      if (!docEntry) {
-        throw new Error('KMZ file is invalid');
-      }
-
-      const kmlString = zip.readAsText(docEntry);
-      const doc = new DOMParser().parseFromString(kmlString);
-      return kml(doc);
-    }
-    default:
-      throw new Error('Unrecognized file type. Use only gpx/kml files.');
-  }
 }
 
 function* extractCoordinates(json) {
@@ -147,16 +108,9 @@ function buildTileUrl(addressTemplate, tile) {
     });
 }
 
-// const agent = new HttpProxyAgent({
-//   hostname: '127.0.0.1',
-//   port: '8888',
-//   keepAlive: true
-// });
-
 async function downloadTile(address, etag, retry = 0) {
   const options = {
     headers: {},
-    // agent
   };
   if (etag) {
     options.headers['If-None-Match'] = etag;
@@ -209,12 +163,25 @@ function ensurePath(filename) {
   }
 }
 
+async function overpassQuery(query) {
+  const body = `[out:json][timeout:25];${query}`;
+  const result = await fetch('http://overpass-api.de/api/interpreter', {
+    method: 'POST',
+    body,
+  });
+  if (!result.ok) {
+    throw new Error(result.status);
+  }
+
+  return result.json();
+}
+
 module.exports = {
-  readGeoJson,
+  addDownload,
   extractCoordinates,
+  buildTileUrl,
   coordinates2Tile,
   coordinates2Tiles,
-  buildTileUrl,
-  addDownload,
   ensurePath,
+  overpassQuery,
 };

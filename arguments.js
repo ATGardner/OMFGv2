@@ -7,10 +7,17 @@ const yargs = require('yargs')
   .options({
     inputFiles: {
       alias: 'i',
-      demandOption: true,
+      conflicts: 'r',
+      // demandOption: true,
       describe: 'An array of input gpx/kml files',
       normalize: true,
       type: 'array',
+    },
+    relationId: {
+      alias: 'r',
+      conflicts: 'i',
+      describe: 'An OSM relation Id',
+      type: 'number',
     },
     sourceType: {
       alias: 'st',
@@ -24,7 +31,7 @@ const yargs = require('yargs')
     },
     sourceName: {
       alias: 'sn',
-      describe: 'Source tile server name/Maperitive folder',
+      describe: 'Source tile server name',
       type: 'string',
     },
     minZoom: {

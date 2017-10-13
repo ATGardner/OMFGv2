@@ -1,0 +1,12 @@
+{
+  "inputFilesa": [
+    "D:/Users/Noam/Google Drive/Hiking/GPS Data/USA/Colorado Trail/CT2017R.gpx",
+    "D:/Users/Noam/Google Drive/Hiking/GPS Data/USA/Colorado Trail/CT_E_500.gpx"
+  ],
+  "r": 282071,
+  "minZoom": 10,
+  "maxZoom": 10,
+  "sourceName": "Israel Hiking Map, EN",
+  "outputType": "BCNav",
+  "outputFile": "INT"
+}

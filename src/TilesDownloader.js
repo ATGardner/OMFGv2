@@ -1,14 +1,15 @@
 const EventEmitter = require('events');
-const {readGeoJson, extractCoordinates, coordinates2Tiles} = require('./utils');
+const {extractCoordinates, coordinates2Tiles} = require('./utils');
 
-function* extractUniqueTileDefinitions(coordinates, minZoom, maxZoom) {
-  const ids = new Set();
+function* extractUniqueTileDefinitions(json, minZoom, maxZoom) {
+  const tileIds = new Set();
+  const coordinates = extractCoordinates(json);
   for (const coordinate of coordinates) {
     let tiles = coordinates2Tiles(coordinate, maxZoom, 3000);
     for (let tile of tiles) {
       let tileId = tile.toString();
-      while (!ids.has(tileId) && tile.zoom >= minZoom) {
-        ids.add(tileId);
+      while (!tileIds.has(tileId) && tile.zoom >= minZoom) {
+        tileIds.add(tileId);
         yield tile;
         tile = tile.parentTile;
         tileId = tile.toString();
@@ -17,32 +18,25 @@ function* extractUniqueTileDefinitions(coordinates, minZoom, maxZoom) {
   }
 }
 
-function* extractAllCoordinates(inputFiles) {
-  for (const input of inputFiles) {
-    const json = readGeoJson(input);
-    yield* extractCoordinates(json);
-  }
-}
-
 class TilesDownloader extends EventEmitter {
-  constructor(inputFiles, source, packager, minZoom, maxZoom) {
+  constructor(geoSource, tileSource, packager, minZoom, maxZoom) {
     super();
-    this.inputFiles = inputFiles;
-    this.source = source;
+    this.geoSource = geoSource;
+    this.tileSource = tileSource;
     this.packager = packager;
     this.minZoom = minZoom;
     this.maxZoom = maxZoom;
   }
 
   async getTiles() {
-    const coordinates = extractAllCoordinates(this.inputFiles);
+    const geoJson = await this.geoSource.getGeoJson();
     const tileDefinitions = extractUniqueTileDefinitions(
-      coordinates,
+      geoJson,
       this.minZoom,
       this.maxZoom,
     );
     const promises = [];
-    await this.source.init();
+    await this.tileSource.init();
     await this.packager.init();
     for (const td of tileDefinitions) {
       const tilePromise = (async () => {
@@ -52,7 +46,7 @@ class TilesDownloader extends EventEmitter {
             return;
           }
 
-          const data = await this.source.getTileData(td);
+          const data = await this.tileSource.getTileData(td);
           if (data) {
             await this.packager.addTile(td, data);
           }
@@ -63,8 +57,8 @@ class TilesDownloader extends EventEmitter {
       promises.push(tilePromise);
     }
 
-    if (this.source.generateAllTiles) {
-      this.source.generateAllTiles();
+    if (this.tileSource.generateAllTiles) {
+      this.tileSource.generateAllTiles();
     }
 
     await Promise.all(promises);

@@ -5,7 +5,7 @@ const FSSource = require('./fsSource');
 const WMTSSource = require('./wmtsSource');
 
 module.exports = {
-  getSource(sourceType, source) {
+  getTileSource(sourceType, source) {
     switch (sourceType) {
       case 'Maperitive':
         return new MaperitiveSource(source);
