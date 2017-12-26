@@ -46,7 +46,7 @@ class LocalFilesSource {
     const jsons = this.inputFiles.map(readFile);
     const arrayOfFeatureArrays = jsons.map(j => j.features);
     return {
-      features: [].concat.apply(...arrayOfFeatureArrays),
+      features: Array.prototype.concat(...arrayOfFeatureArrays),
       type: 'FeatureCollection',
     };
   }

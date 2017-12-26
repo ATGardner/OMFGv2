@@ -13,7 +13,7 @@ function generateOutputFile([firstInput], sourceName, minZoom, maxZoom) {
   return join('output', `${fileName} - ${sourceName} - ${minZoom}-${maxZoom}`);
 }
 
-function downloadTiles({
+async function downloadTiles({
   inputFiles,
   relationId,
   sourceType,
@@ -29,6 +29,7 @@ function downloadTiles({
     maxZoom,
   ),
 }) {
+  const timer = winston.startTimer();
   try {
     const geoSourceType = inputFiles ? 'localFile' : 'osmRelation';
     const geoSource = getGeoSource(geoSourceType, inputFiles || relationId);
@@ -37,7 +38,9 @@ function downloadTiles({
     winston.info(
       `Generating tiles, geoSource: ${JSON.stringify(
         geoSource.toString(),
-      )}, source: ${tileSource.Name}, minZoom: ${minZoom}, maxZoom: ${maxZoom}, outputType: ${outputType}`,
+      )}, source: ${
+        tileSource.Name
+      }, minZoom: ${minZoom}, maxZoom: ${maxZoom}, outputType: ${outputType}`,
     );
     const downloader = new TilesDownloader(
       geoSource,
@@ -46,11 +49,21 @@ function downloadTiles({
       minZoom,
       maxZoom,
     );
-    return downloader.getTiles();
+    await downloader.getTiles();
   } catch (error) {
     winston.error(`Failed generating tiles`, error);
+  } finally {
+    timer.done('Finished downloading tiles');
   }
 }
+
+process.on('uncaughtException', error => {
+  winston.error('Uncaught Exception', error);
+});
+
+process.on('unhandledRejection', error => {
+  winston.error('Unhandled Rejection', error);
+});
 
 module.exports = {
   downloadTiles,

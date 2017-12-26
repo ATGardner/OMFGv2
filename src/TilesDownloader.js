@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const winston = require('winston');
 const {extractCoordinates, coordinates2Tiles} = require('./utils');
 
 function* extractUniqueTileDefinitions(json, minZoom, maxZoom) {
@@ -30,11 +31,15 @@ class TilesDownloader extends EventEmitter {
 
   async getTiles() {
     const geoJson = await this.geoSource.getGeoJson();
-    const tileDefinitions = extractUniqueTileDefinitions(
-      geoJson,
-      this.minZoom,
-      this.maxZoom,
-    );
+    const tileDefinitions = [
+      ...extractUniqueTileDefinitions(geoJson, this.minZoom, this.maxZoom),
+    ];
+
+    const total = tileDefinitions.length;
+    winston.verbose(`Downloading ${total} tiles`);
+    let done = 0;
+    let failed = 0;
+    let percent = 0;
     const promises = [];
     await this.tileSource.init();
     await this.packager.init();
@@ -43,15 +48,32 @@ class TilesDownloader extends EventEmitter {
         try {
           const hasData = await this.packager.hasTile(td);
           if (hasData) {
+            done += 1;
+            winston.verbose(`Packager has tile ${td.toString()}`);
             return;
           }
 
           const data = await this.tileSource.getTileData(td);
           if (data) {
             await this.packager.addTile(td, data);
+            done += 1;
+          } else {
+            failed += 1;
           }
         } catch (error) {
-          throw error;
+          winston.error(
+            `Failed getting tile ${td.toString()}`,
+            error.message,
+          );
+          failed += 1;
+        } finally {
+          const newPercent = Math.floor(100 * (done + failed) / total);
+          if (newPercent > percent) {
+            percent = newPercent;
+            winston.verbose(
+              `Done ${percent}% ${done}/${total} [${failed} failed]`,
+            );
+          }
         }
       })();
       promises.push(tilePromise);

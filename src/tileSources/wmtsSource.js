@@ -1,3 +1,4 @@
+const pngToJpeg = require('png-to-jpeg');
 const moment = require('moment');
 const winston = require('winston');
 const Cache = require('./cache');
@@ -22,30 +23,24 @@ class WMTSSource {
   }
 
   async getTileData(tile) {
-    const {data, lastCheck = 0, etag} = (await this.cache.getTile(tile)) || {};
+    const {data: cachedData, lastCheck = 0, etag} =
+      (await this.cache.getTile(tile)) || {};
     if (
       moment()
         .subtract(1, 'day')
         .isBefore(lastCheck)
     ) {
-      winston.verbose(`Got tile ${tile.toString()} from cache`);
-      return data;
+      // winston.verbose(`Got tile ${tile.toString()} from cache`);
+      return cachedData;
     }
 
-    try {
-      const address = buildTileUrl(this.Address, tile);
-      const {data, lastCheck: newLastCheck, etag: newEtag} = await addDownload(
-        address,
-        etag,
-      );
-      await this.updateCache(tile, data, newLastCheck, newEtag);
-      return data;
-    } catch (error) {
-      winston.error(
-        `Failed getting tile ${tile.toString()} data`,
-        error.message,
-      );
-    }
+    const address = buildTileUrl(this.Address, tile);
+    const {data, lastCheck: newLastCheck, etag: newEtag} = await addDownload(
+      address,
+      etag,
+    );
+    await this.updateCache(tile, data, newLastCheck, newEtag);
+    return data || cachedData;
   }
 
   close() {

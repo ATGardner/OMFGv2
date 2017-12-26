@@ -1,5 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="start cli" type="NodeJSConfigurationType" factoryName="Node.js" application-parameters="--config config-wmts.json" path-to-js-file="cli.js" working-dir="$PROJECT_DIR$">
-    <method />
-  </configuration>
-</component>

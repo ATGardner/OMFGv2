@@ -7,6 +7,12 @@ const Tile = require('./Tile');
 const {LatLonEllipsoidal: LatLon} = require('geodesy');
 
 const queue = new PQueue({concurrency: 10});
+queue.onEmpty(() => {
+  winston.verbose('queue is empty');
+});
+queue.onIdle(() => {
+  winston.verbose('queue is idle');
+});
 
 function delay(ms) {
   return new Promise(resolve => {
@@ -131,9 +137,7 @@ async function downloadTile(address, etag, retry = 0) {
       throw new Error(response.statusText);
     }
 
-    winston.verbose(`Getting response buffer, address: ${address}`);
     const data = await response.buffer();
-    winston.verbose(`Got data from server, address: ${address}`);
     return {data, lastCheck, etag};
   } catch (e) {
     if (
@@ -141,9 +145,9 @@ async function downloadTile(address, etag, retry = 0) {
       retry < 50
     ) {
       retry += 1;
-      await delay(retry * 500);
+      // await delay(retry * 500);
       winston.warn(`Retrying ${address}, ${retry} attempt`);
-      return downloadTile(address, etag, retry);
+      return queue.add(() => downloadTile(address, etag, retry));
     }
 
     throw e;

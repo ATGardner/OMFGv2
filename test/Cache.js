@@ -1,6 +1,6 @@
 const chai = require('chai');
 const chaiString = require('chai-string');
-const Cache = require('../src/sources/cache');
+const Cache = require('../src/tileSources/cache');
 const Tile = require('../src/utils/Tile');
 
 chai.use(chaiString);

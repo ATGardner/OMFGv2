@@ -1,7 +1,9 @@
+const {extname} = require('path');
 const sources = require('./sources.json');
 const MaperitiveSource = require('./maperitiveSource');
 const MBSource = require('./mbSource');
 const FSSource = require('./fsSource');
+const JPEGSource = require('./jpegSource');
 const WMTSSource = require('./wmtsSource');
 
 module.exports = {
@@ -19,7 +21,9 @@ module.exports = {
           throw new Error(`Could not find WMTS source "${source}"`);
         }
 
-        return new WMTSSource(sourceDescriptor);
+        return extname(sourceDescriptor.Address) === '.png'
+          ? new JPEGSource(sourceDescriptor)
+          : new WMTSSource(sourceDescriptor);
       }
     }
   },

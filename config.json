@@ -1,10 +1,9 @@
 {
   "inputFiles": [
-    "D:\\Users\\Noam\\Google Drive\\Hiking\\GPS Data\\USA\\Colorado Trail\\CT2017R.gpx"
+    "D:\\Users\\Noam\\Google Drive\\Hiking\\GPS Data\\USA\\Pacific Crest Trail\\2016_PCT.kmz"
   ],
   "minZoom": 10,
-  "maxZoom": 10,
-  "sourceFile": "D:\\Users\\Noam\\Downloads\\maps\\OMFG\\Maperitive",
-  "sourceType": "Maperitive",
-  "outputType": "BCNav"
+  "maxZoom": 15,
+  "sourceName": "MapBuilder Topo",
+  "outputType": "MBTiles"
 }
