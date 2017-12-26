@@ -15,7 +15,7 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-string": "^1.4.0",
-    "eslint": "^4.13.1",
+    "eslint": "^4.14.0",
     "eslint-config-google": "^0.9.1",
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-prettier": "^2.4.0",
@@ -29,7 +29,7 @@
     "express": "^4.16.2",
     "geodesy": "^1.1.2",
     "http-proxy-agent": "^2.0.0",
-    "moment": "^2.20.0",
+    "moment": "^2.20.1",
     "node-fetch": "^1.7.3",
     "osmtogeojson": "^3.0.0-beta.2",
     "p-queue": "^2.3.0",
