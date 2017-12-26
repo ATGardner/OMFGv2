@@ -49,7 +49,7 @@ class TilesDownloader extends EventEmitter {
           const hasData = await this.packager.hasTile(td);
           if (hasData) {
             done += 1;
-            winston.verbose(`Packager has tile ${td.toString()}`);
+            // winston.verbose(`Packager has tile ${td.toString()}`);
             return;
           }
 

@@ -1,9 +1,0 @@
-{
-  "inputFiles": [
-    "D:\\Users\\Noam\\Google Drive\\Hiking\\GPS Data\\USA\\Pacific Crest Trail\\2016_PCT.kmz"
-  ],
-  "minZoom": 10,
-  "maxZoom": 15,
-  "sourceName": "MapBuilder Topo",
-  "outputType": "MBTiles"
-}
