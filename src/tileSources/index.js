@@ -21,7 +21,7 @@ module.exports = {
           throw new Error(`Could not find WMTS source "${source}"`);
         }
 
-        return extname(sourceDescriptor.Address) === '.png'
+        return sourceDescriptor.compress
           ? new JPEGSource(sourceDescriptor)
           : new WMTSSource(sourceDescriptor);
       }

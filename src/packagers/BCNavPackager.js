@@ -1,7 +1,7 @@
 const {format} = require('path');
-const BasePackager = require('./basePackager');
+const DatabasePackager = require('./DatabasePackager');
 
-class BCNavPackager extends BasePackager {
+class BCNavPackager extends DatabasePackager {
   constructor(fileName) {
     super(format({name: fileName, ext: '.sqlitedb'}));
   }
