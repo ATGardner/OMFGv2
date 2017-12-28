@@ -1,12 +1,13 @@
-const {format} = require('path');
+const {basename, extname, format} = require('path');
 const DatabasePackager = require('./DatabasePackager');
 
 class MBTilesPackager extends DatabasePackager {
   constructor(fileName) {
     super(format({name: fileName, ext: '.mbtiles'}));
+    this.name = basename(fileName);
   }
 
-  async init() {
+  async init(source) {
     await super.init();
     await this.db.run(
       'CREATE TABLE IF NOT EXISTS tiles (tile_column integer, tile_row integer, zoom_level integer, tile_data blob, PRIMARY KEY (tile_column, tile_row, zoom_level));',
@@ -26,6 +27,13 @@ class MBTilesPackager extends DatabasePackager {
     this.selectStatement = await this.db.prepare(
       'SELECT COUNT(*) AS result FROM tiles WHERE tile_column = $tile_column AND tile_row = $tile_row and zoom_level = $zoom_level;',
     );
+    await this.setMetadata('name', this.name);
+    await this.setMetadata('type', 'baselayer');
+    await this.setMetadata('version', 1);
+    await this.setMetadata('description', this.name);
+    const format = extname(source.Address).substr(1);
+    await this.setMetadata('format', format);
+    await this.setMetadata('attribution', source.attribution);
     await this.setMetadata('locale', 'en-US');
   }
 

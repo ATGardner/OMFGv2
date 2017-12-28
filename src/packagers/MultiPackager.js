@@ -6,8 +6,8 @@ class BCNavPackager extends BasePackager {
     this.packagers = Packagers.map(P => new P(fileName));
   }
 
-  init() {
-    return Promise.all(this.packagers.map(p => p.init()));
+  init(source) {
+    return Promise.all(this.packagers.map(p => p.init(source)));
   }
 
   hasTile({x, y, zoom}) {

@@ -42,7 +42,7 @@ class TilesDownloader extends EventEmitter {
     let percent = 0;
     const promises = [];
     await this.tileSource.init();
-    await this.packager.init();
+    await this.packager.init(this.tileSource);
     for (const td of tileDefinitions) {
       const tilePromise = (async () => {
         try {
