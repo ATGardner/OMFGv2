@@ -4,6 +4,7 @@ const {overpassQuery} = require('../utils');
 class OSMRelationSource {
   constructor(relationId) {
     this.relationId = relationId;
+    this.routeAttribution = `https://hiking.waymarkedtrails.org/#route?id=${relationId}`;
   }
 
   async getGeoJson() {

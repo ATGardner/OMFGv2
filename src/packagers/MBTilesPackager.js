@@ -4,11 +4,10 @@ const DatabasePackager = require('./DatabasePackager');
 class MBTilesPackager extends DatabasePackager {
   constructor(fileName) {
     super(format({name: fileName, ext: '.mbtiles'}));
-    this.name = basename(fileName);
   }
 
   async init(source) {
-    await super.init();
+    await super.init(source);
     await this.db.run(
       'CREATE TABLE IF NOT EXISTS tiles (tile_column integer, tile_row integer, zoom_level integer, tile_data blob, PRIMARY KEY (tile_column, tile_row, zoom_level));',
     );
@@ -27,10 +26,11 @@ class MBTilesPackager extends DatabasePackager {
     this.selectStatement = await this.db.prepare(
       'SELECT COUNT(*) AS result FROM tiles WHERE tile_column = $tile_column AND tile_row = $tile_row and zoom_level = $zoom_level;',
     );
-    await this.setMetadata('name', this.name);
+    const name = basename(this.filename);
+    await this.setMetadata('name', name);
     await this.setMetadata('type', 'baselayer');
     await this.setMetadata('version', 1);
-    await this.setMetadata('description', this.name);
+    await this.setMetadata('description', name);
     const format = extname(source.Address).substr(1);
     await this.setMetadata('format', format);
     await this.setMetadata('attribution', source.attribution);
@@ -68,11 +68,11 @@ class MBTilesPackager extends DatabasePackager {
     });
   }
 
-  async close() {
+  async close(...args) {
     await this.insertStatement.finalize();
     await this.selectStatement.finalize();
     await this.metadataStatement.finalize();
-    await super.close();
+    await super.close('Orux', ...args);
   }
 }
 

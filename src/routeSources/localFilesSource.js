@@ -1,6 +1,6 @@
 const {readFileSync} = require('fs');
 const {extname} = require('path');
-const AdmZip = require('adm-zip');
+const JSZip = require('jszip');
 const {gpx, kml} = require('@mapbox/togeojson');
 const {DOMParser} = require('xmldom');
 
@@ -9,7 +9,15 @@ function readDocFromFile(fileName) {
   return new DOMParser().parseFromString(text);
 }
 
-function readFile(fileName) {
+async function readKmlStringFromKmz(fileName) {
+  const data = readFileSync(fileName);
+  const zip = new JSZip();
+  await zip.loadAsync(data);
+  const [docEntry] = zip.file(/\.kml$/);
+  return docEntry.async('text');
+}
+
+async function readFile(fileName) {
   const ext = extname(fileName);
   switch (ext) {
     case '.gpx': {
@@ -21,14 +29,7 @@ function readFile(fileName) {
       return kml(doc);
     }
     case '.kmz': {
-      const zip = new AdmZip(fileName);
-      const zipEntries = zip.getEntries();
-      const docEntry = zipEntries.find(({name}) => extname(name) === '.kml');
-      if (!docEntry) {
-        throw new Error('KMZ file is invalid');
-      }
-
-      const kmlString = zip.readAsText(docEntry);
+      const kmlString = await readKmlStringFromKmz(fileName);
       const doc = new DOMParser().parseFromString(kmlString);
       return kml(doc);
     }
@@ -38,12 +39,14 @@ function readFile(fileName) {
 }
 
 class LocalFilesSource {
-  constructor(inputFiles) {
+  constructor({inputFiles, routeAttribution}) {
     this.inputFiles = inputFiles;
+    this.routeAttribution = routeAttribution;
   }
 
-  getGeoJson() {
-    const jsons = this.inputFiles.map(readFile);
+  async getGeoJson() {
+    const promises = this.inputFiles.map(readFile);
+    const jsons = await Promise.all(promises);
     const arrayOfFeatureArrays = jsons.map(j => j.features);
     return {
       features: Array.prototype.concat(...arrayOfFeatureArrays),

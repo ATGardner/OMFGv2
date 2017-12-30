@@ -1,7 +1,7 @@
 const {extname, basename, join} = require('path');
 const winston = require('winston');
 const {getPackager} = require('./packagers');
-const {getGeoSource} = require('./geoSources');
+const {getRouteSource} = require('./routeSources');
 const {getTileSource} = require('./tileSources');
 const TilesDownloader = require('./TilesDownloader');
 
@@ -15,6 +15,7 @@ function generateOutputFile([firstInput], sourceName, minZoom, maxZoom) {
 
 async function downloadTiles({
   inputFiles,
+  routeAttribution,
   relationId,
   sourceType,
   sourceName,
@@ -31,19 +32,20 @@ async function downloadTiles({
 }) {
   const timer = winston.startTimer();
   try {
-    const geoSourceType = inputFiles ? 'localFile' : 'osmRelation';
-    const geoSource = getGeoSource(geoSourceType, inputFiles || relationId);
+    const routeSourceType = inputFiles ? 'localFile' : 'osmRelation';
+    const data = inputFiles ? {inputFiles, routeAttribution} : relationId;
+    const routeSource = getRouteSource(routeSourceType, data);
     const tileSource = getTileSource(sourceType, sourceName || sourceFile);
     const packager = getPackager(outputType, outputFile);
     winston.info(
-      `Generating tiles, geoSource: ${JSON.stringify(
-        geoSource.toString(),
+      `Generating tiles, routeSource: ${JSON.stringify(
+        routeSource.toString(),
       )}, source: ${
         tileSource.Name
       }, minZoom: ${minZoom}, maxZoom: ${maxZoom}, outputType: ${outputType}`,
     );
     const downloader = new TilesDownloader(
-      geoSource,
+      routeSource,
       tileSource,
       packager,
       minZoom,

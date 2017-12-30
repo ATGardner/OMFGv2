@@ -48,14 +48,14 @@ class BCNavPackager extends DatabasePackager {
     });
   }
 
-  async close() {
+  async close(...args) {
     await this.insertStatement.finalize();
     await this.selectStatement.finalize();
     await this.db.run(
       `DELETE FROM info;
        INSERT INTO info(minzoom, maxzoom) VALUES((SELECT MIN(z) FROM tiles), (SELECT MAX(z) FROM tiles));`,
     );
-    await super.close();
+    await super.close('BCNav', ...args);
   }
 }
 

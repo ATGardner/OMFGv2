@@ -4,17 +4,19 @@ const {ensurePath} = require('../utils');
 
 class DatabasePackager extends BasePackager {
   constructor(filename) {
-    super();
+    super(filename);
     this.newFile = !ensurePath(filename);
     this.db = new Database(filename);
   }
 
-  async init() {
-    await this.db.init();
+  async init(...args) {
+    await super.init(...args);
+    return this.db.init();
   }
 
-  async close() {
+  async close(...args) {
     await this.db.close();
+    return super.close(...args);
   }
 }
 

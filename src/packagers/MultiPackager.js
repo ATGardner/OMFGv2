@@ -6,8 +6,8 @@ class BCNavPackager extends BasePackager {
     this.packagers = Packagers.map(P => new P(fileName));
   }
 
-  init(source) {
-    return Promise.all(this.packagers.map(p => p.init(source)));
+  init(...args) {
+    return Promise.all(this.packagers.map(p => p.init(...args)));
   }
 
   hasTile({x, y, zoom}) {
@@ -20,8 +20,8 @@ class BCNavPackager extends BasePackager {
     );
   }
 
-  close() {
-    return Promise.all(this.packagers.map(p => p.close()));
+  close(...args) {
+    return Promise.all(this.packagers.map(p => p.close(...args)));
   }
 }
 

@@ -2,7 +2,7 @@ const LocalFilesSource = require('./localFilesSource');
 const OsmRelationSource = require('./osmRelationSource');
 
 module.exports = {
-  getGeoSource(sourceType, data) {
+  getRouteSource(sourceType, data) {
     switch (sourceType) {
       case 'localFile':
         return new LocalFilesSource(data);

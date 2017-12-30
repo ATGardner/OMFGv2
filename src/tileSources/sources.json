@@ -4,7 +4,7 @@
     "Address": "http://[abc].tile.openstreetmap.org/{zoom}/{x}/{y}.png",
     "minZoom": 0,
     "maxZoom": 19,
-    "attribution": "Data © <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap contributors</a>",
+    "attribution": "Data © OpenStreetMap contributors (http://www.openstreetmap.org/copyright)",
     "type": "TileServer"
   },
   {
@@ -12,7 +12,7 @@
     "Address": "https://ctusfs.s3.amazonaws.com/2016a/{zoom}/{x}/{y}.png",
     "minZoom": 0,
     "maxZoom": 16,
-    "attribution": "Data © <a href=\"https://caltopo.com/\">CalTopo, USFS</a>",
+    "attribution": "Data © CalTopo, USFS (https://caltopo.com/)",
     "type": "TileServer"
   },
   {
@@ -20,7 +20,7 @@
     "Address": "https://caltopo.s3.amazonaws.com/topo/{zoom}/{x}/{y}.png",
     "minZoom": 0,
     "maxZoom": 16,
-    "attribution": "Data © <a href=\"https://caltopo.com/\">CalTopo, USGS, NZTopo</a> CC-by-3.0-NZ",
+    "attribution": "Data © CalTopo, USGS, NZTopo (https://caltopo.com/) CC-by-3.0-NZ",
     "type": "TileServer"
   },
   {
@@ -28,7 +28,7 @@
     "Address": "https://caltopo.com/resource/imagery/mapbuilder/cs-60-40-c21BB6100-h22-a21-r22-t22d-m21-p21/{zoom}/{x}/{y}.png",
     "minZoom": 5,
     "maxZoom": 16,
-    "attribution": "Tiles © <a href=\"https://caltopo.com/map.html#b=mbt\">CalTopo</a>, Data by <a href=\"https://openstreetmap.org\">OpenStreetMap</a> under <a href=\"https://opendatacommons.org/licenses/odbl/summary/\">ODbL</a>.",
+    "attribution": "Tiles © CalTopo (https://caltopo.com/map.html#b=mbt), Data by OpenStreetMap (https://openstreetmap.org) under ODbL (https://opendatacommons.org/licenses/odbl/summary/).",
     "type": "TileServer",
     "compress": true
   },
@@ -37,7 +37,7 @@
     "Address": "http://server.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer/tile/{zoom}/{y}/{x}.png",
     "minZoom": 0,
     "maxZoom": 15,
-    "attribution": "Copyright:© 2013 <a href=\"http://services.arcgisonline.com/arcgis/rest/services/USA_Topo_Maps/MapServer\">National Geographic Society</a>, i-cubed",
+    "attribution": "Copyright:© 2013 National Geographic Society (http://services.arcgisonline.com/arcgis/rest/services/USA_Topo_Maps/MapServer), i-cubed",
     "type": "TileServer"
   },
   {
@@ -45,7 +45,7 @@
     "Address": "http://israelhiking.osm.org.il/Hebrew/Tiles/{zoom}/{x}/{y}.png",
     "minZoom": 7,
     "maxZoom": 16,
-    "attribution": "Tiles © <a href=\"https://IsraelHiking.osm.org.il\">Israel Hiking</a>, <a href=\"https://creativecommons.org/licenses/by-nc-sa/3.0/\">CC BY-NC-SA 3.0</a>. Data by <a href=\"https://openstreetmap.org\">OpenStreetMap</a> under <a href=\"https://opendatacommons.org/licenses/odbl/summary/\">ODbL</a>.",
+    "attribution": "Tiles © Israel Hiking (https://IsraelHiking.osm.org.il), CC BY-NC-SA 3.0 (https://creativecommons.org/licenses/by-nc-sa/3.0/). Data by OpenStreetMap (https://openstreetmap.org) under ODbL (https://opendatacommons.org/licenses/odbl/summary/).",
     "type": "TileServer"
   },
   {
@@ -53,7 +53,7 @@
     "Address": "http://israelhiking.osm.org.il/English/Tiles/{zoom}/{x}/{y}.png",
     "minZoom": 7,
     "maxZoom": 16,
-    "attribution": "Tiles © <a href=\"https://IsraelHiking.osm.org.il\">Israel Hiking</a>, <a href=\"https://creativecommons.org/licenses/by-nc-sa/3.0/\">CC BY-NC-SA 3.0</a>. Data by <a href=\"https://openstreetmap.org\">OpenStreetMap</a> under <a href=\"https://opendatacommons.org/licenses/odbl/summary/\">ODbL</a>.",
+    "attribution": "Tiles © Israel Hiking (https://IsraelHiking.osm.org.il), CC BY-NC-SA 3.0 (https://creativecommons.org/licenses/by-nc-sa/3.0/). Data by OpenStreetMap (https://openstreetmap.org) under ODbL (https://opendatacommons.org/licenses/odbl/summary/).",
     "type": "TileServer"
   },
   {
@@ -85,7 +85,8 @@
     "Address": "https://[abc].tile.opentopomap.org/{z}/{x}/{y}.png",
     "minZoom": 1,
     "maxZoom": 17,
-    "attribution": "Map data © <a href=\"https://www.openstreetmap.org/#map=11/50.8287/13.051\">OpenStreetMap</a> under <a href=\"https://www.openstreetmap.org/copyright\">ODbL</a> elevation data by <a href=\"help/acknowledgements\">SRTM/ASTER</a> Base map: <a href=\"https://opentopomap.org/\">OpenTopoMap</a>(<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-by-SA</a>)",
-    "type": "TileServer"
+    "attribution": "Map data © OpenStreetMap (https://www.openstreetmap.org/#map=11/50.8287/13.051) under ODbL (https://www.openstreetmap.org/copyright) elevation data by SRTM/ASTER Base map: OpenTopoMap (https://opentopomap.org/)(CC-by-SA (https://creativecommons.org/licenses/by-sa/3.0/))",
+    "type": "TileServer",
+    "compress": true
   }
 ]

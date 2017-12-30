@@ -13,6 +13,12 @@ const yargs = require('yargs')
       normalize: true,
       type: 'array',
     },
+    routeAttribution: {
+      alias: 'ra',
+      conflicts: 'r',
+      describe: 'The source of the input files',
+      type: 'string',
+    },
     relationId: {
       alias: 'r',
       conflicts: 'i',

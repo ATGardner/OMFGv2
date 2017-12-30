@@ -7,12 +7,6 @@ const Tile = require('./Tile');
 const {LatLonEllipsoidal: LatLon} = require('geodesy');
 
 const queue = new PQueue({concurrency: 10});
-queue.onEmpty(() => {
-  winston.verbose('queue is empty');
-});
-queue.onIdle(() => {
-  winston.verbose('queue is idle');
-});
 
 function delay(ms) {
   return new Promise(resolve => {
@@ -114,7 +108,7 @@ function buildTileUrl(addressTemplate, tile) {
     });
 }
 
-async function downloadTile(address, etag, retry = 0) {
+async function downloadTile(address, etag) {
   const options = {
     headers: {},
   };
@@ -122,40 +116,35 @@ async function downloadTile(address, etag, retry = 0) {
     options.headers['If-None-Match'] = etag;
   }
 
-  try {
-    const response = await fetch(address, options);
-    etag = response.headers.get('etag');
-    const lastCheck = response.headers.get('date');
-    if (response.status === 304) {
-      winston.verbose(
-        `etag matched, skipped getting data, address: ${address}`,
-      );
-      return {lastCheck, etag};
-    }
-
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-
-    const data = await response.buffer();
-    return {data, lastCheck, etag};
-  } catch (e) {
-    if (
-      (e.message === 'Fiddler - Receive Failure' || e.code === 'ECONNRESET') &&
-      retry < 50
-    ) {
-      retry += 1;
-      // await delay(retry * 500);
-      winston.warn(`Retrying ${address}, ${retry} attempt`);
-      return queue.add(() => downloadTile(address, etag, retry));
-    }
-
-    throw e;
+  const response = await fetch(address, options);
+  etag = response.headers.get('etag');
+  const lastCheck = response.headers.get('date');
+  if (response.status === 304) {
+    winston.verbose(`etag matched, skipped getting data, address: ${address}`);
+    return {lastCheck, etag};
   }
+
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+
+  const data = await response.buffer();
+  return {data, lastCheck, etag};
 }
 
-function addDownload(address, etag) {
-  return queue.add(() => downloadTile(address, etag));
+async function addDownload(address, etag, retry = 0) {
+  try {
+    return await queue.add(() => downloadTile(address, etag));
+  } catch (error) {
+    if (error.code === 'ECONNRESET' && retry < 50) {
+      retry += 1;
+      await delay(retry * 500);
+      winston.warn(`Retrying ${address}, ${retry} attempt`);
+      return addDownload(address, etag, retry);
+    } else {
+      throw error;
+    }
+  }
 }
 
 function ensurePath(filename) {

@@ -20,9 +20,9 @@ function* extractUniqueTileDefinitions(json, minZoom, maxZoom) {
 }
 
 class TilesDownloader extends EventEmitter {
-  constructor(geoSource, tileSource, packager, minZoom, maxZoom) {
+  constructor(routeSource, tileSource, packager, minZoom, maxZoom) {
     super();
-    this.geoSource = geoSource;
+    this.routeSource = routeSource;
     this.tileSource = tileSource;
     this.packager = packager;
     this.minZoom = minZoom;
@@ -30,7 +30,7 @@ class TilesDownloader extends EventEmitter {
   }
 
   async getTiles() {
-    const geoJson = await this.geoSource.getGeoJson();
+    const geoJson = await this.routeSource.getGeoJson();
     const tileDefinitions = [
       ...extractUniqueTileDefinitions(geoJson, this.minZoom, this.maxZoom),
     ];
@@ -61,10 +61,7 @@ class TilesDownloader extends EventEmitter {
             failed += 1;
           }
         } catch (error) {
-          winston.error(
-            `Failed getting tile ${td.toString()}`,
-            error.message,
-          );
+          winston.error(`Failed getting tile ${td.toString()}`, error.message);
           failed += 1;
         } finally {
           const newPercent = Math.floor(100 * (done + failed) / total);
@@ -84,7 +81,10 @@ class TilesDownloader extends EventEmitter {
     }
 
     await Promise.all(promises);
-    await this.packager.close();
+    await this.packager.close(
+      this.routeSource.routeAttribution,
+      this.tileSource.attribution,
+    );
   }
 }
 
