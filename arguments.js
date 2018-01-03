@@ -8,14 +8,12 @@ const yargs = require('yargs')
     inputFiles: {
       alias: 'i',
       conflicts: 'r',
-      // demandOption: true,
       describe: 'An array of input gpx/kml files',
       normalize: true,
       type: 'array',
     },
     routeAttribution: {
       alias: 'ra',
-      conflicts: 'r',
       describe: 'The source of the input files',
       type: 'string',
     },
@@ -61,7 +59,7 @@ const yargs = require('yargs')
     outputType: {
       alias: 'ot',
       choices: ['MBTiles', 'BCNav', 'Both'],
-      default: 'MBTiles',
+      default: 'Both',
     },
   })
   .help('h')

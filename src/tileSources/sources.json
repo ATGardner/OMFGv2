@@ -65,7 +65,7 @@
     "type": "Maperitive"
   },
   {
-    "Name": "NZ - Topo50 Maps",
+    "Name": "NZ Topo50",
     "Address": "http://tiles-[abcd].data-cdn.linz.govt.nz/services;key=65bc0122063d4dbebe7a16f80eb5f97e/tiles/v4/layer=52343/EPSG:3857/{z}/{x}/{y}.png",
     "minZoom": 0,
     "maxZoom": 20,
@@ -73,7 +73,7 @@
     "type": "TileServer"
   },
   {
-    "Name": "NZ - Topo250 Maps",
+    "Name": "NZ Topo250",
     "Address": "http://tiles-[abcd].data-cdn.linz.govt.nz/services;key=65bc0122063d4dbebe7a16f80eb5f97e/tiles/v4/layer=52324/EPSG:3857/{z}/{x}/{y}.png",
     "minZoom": 0,
     "maxZoom": 20,

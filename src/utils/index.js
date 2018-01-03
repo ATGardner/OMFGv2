@@ -1,10 +1,17 @@
-const {existsSync, mkdirSync} = require('fs');
-const {dirname} = require('path');
+const {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  unlinkSync,
+  writeFileSync,
+} = require('fs');
+const {dirname, parse, format} = require('path');
 const fetch = require('node-fetch');
 const PQueue = require('p-queue');
 const winston = require('winston');
 const Tile = require('./Tile');
 const {LatLonEllipsoidal: LatLon} = require('geodesy');
+const JSZip = require('jszip');
 
 const queue = new PQueue({concurrency: 10});
 
@@ -169,6 +176,35 @@ async function overpassQuery(query) {
   return result.json();
 }
 
+async function zip(filename, copyright, type) {
+  const zip = new JSZip();
+  const {dir, base, name} = parse(filename);
+  const data = readFileSync(filename);
+  zip.file(base, data);
+  zip.file('copyright.txt', copyright);
+  let done = 0;
+  const content = await zip.generateAsync(
+    {
+      type: 'nodebuffer',
+      compression: 'DEFLATE',
+      compressionOptions: {
+        level: 9,
+      },
+      comment: copyright,
+    },
+    ({percent}) => {
+      percent = +percent.toFixed(0);
+      if (percent > done) {
+        done = percent;
+        winston.verbose(`Zip progression: ${percent} %`);
+      }
+    },
+  );
+  const zipFilename = format({dir, name: `${name} - ${type}`, ext: '.zip'});
+  writeFileSync(zipFilename, content);
+  unlinkSync(filename);
+}
+
 module.exports = {
   addDownload,
   extractCoordinates,
@@ -177,4 +213,5 @@ module.exports = {
   coordinates2Tiles,
   ensurePath,
   overpassQuery,
+  zip,
 };

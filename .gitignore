@@ -105,4 +105,4 @@ typings/
 
 cache
 output
-config.json
+config*.json
