@@ -15,12 +15,12 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-string": "^1.4.0",
-    "eslint": "^4.14.0",
+    "eslint": "^4.16.0",
     "eslint-config-google": "^0.9.1",
     "eslint-config-prettier": "^2.9.0",
-    "eslint-plugin-prettier": "^2.4.0",
-    "mocha": "^4.1.0",
-    "prettier": "^1.9.2"
+    "eslint-plugin-prettier": "^2.5.0",
+    "mocha": "^5.0.0",
+    "prettier": "^1.10.2"
   },
   "dependencies": {
     "@mapbox/togeojson": "^0.16.0",
@@ -37,6 +37,6 @@
     "sqlite3": "^3.1.13",
     "winston": "^2.4.0",
     "xmldom": "^0.1.27",
-    "yargs": "^10.0.3"
+    "yargs": "^10.1.1"
   }
 }
