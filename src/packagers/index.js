@@ -2,16 +2,16 @@ const BCNavPackager = require('./BCNavPackager');
 const MBTilesPackager = require('./MBTilesPackager');
 const MultiPackager = require('./MultiPackager');
 
-function getPackager(outputType, output) {
-  switch (outputType) {
+function getPackager(type, fileName) {
+  switch (type) {
     case 'BCNav':
-      return new BCNavPackager(output);
+      return new BCNavPackager(fileName);
     case 'MBTiles':
-      return new MBTilesPackager(output);
+      return new MBTilesPackager(fileName);
     case 'Both':
-      return new MultiPackager(output, BCNavPackager, MBTilesPackager);
+      return new MultiPackager(fileName, BCNavPackager, MBTilesPackager);
     default:
-      throw new Error(`Unknown format type "${outputType}"`);
+      throw new Error(`Unknown output type "${type}"`);
   }
 }
 

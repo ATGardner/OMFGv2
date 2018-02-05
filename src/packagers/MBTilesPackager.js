@@ -72,7 +72,7 @@ class MBTilesPackager extends DatabasePackager {
     await this.insertStatement.finalize();
     await this.selectStatement.finalize();
     await this.metadataStatement.finalize();
-    await super.close('Orux', ...args);
+    return super.close('Orux', ...args);
   }
 }
 

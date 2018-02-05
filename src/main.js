@@ -59,14 +59,6 @@ async function downloadTiles({
   }
 }
 
-process.on('uncaughtException', error => {
-  winston.error('Uncaught Exception', error);
-});
-
-process.on('unhandledRejection', error => {
-  winston.error('Unhandled Rejection', error);
-});
-
 module.exports = {
   downloadTiles,
 };

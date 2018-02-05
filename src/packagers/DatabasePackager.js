@@ -1,12 +1,14 @@
-const BasePackager = require('./BasePackager');
+const {EOL} = require('os');
 const Database = require('../utils/sqlite3-async');
-const {ensurePath} = require('../utils');
+const {ensurePath, zip} = require('../utils');
 
-class DatabasePackager extends BasePackager {
-  constructor(filename) {
-    super(filename);
-    this.newFile = !ensurePath(filename);
-    this.db = new Database(filename);
+const COPYRIGHT = `Created using OMFG (https://github.com/ATGardner/OMFGv2)${EOL}`;
+
+class DatabasePackager {
+  constructor(fileName) {
+    this.filename = fileName;
+    this.newFile = !ensurePath(fileName);
+    this.db = new Database(fileName);
   }
 
   async init(...args) {
@@ -14,9 +16,17 @@ class DatabasePackager extends BasePackager {
     return this.db.init();
   }
 
-  async close(...args) {
+  async close(type, routeAttribution, tileAttribution) {
     await this.db.close();
-    return super.close(...args);
+    tileAttribution = tileAttribution
+      ? `Tiles Source: ${tileAttribution}${EOL}`
+      : '';
+    routeAttribution = routeAttribution
+      ? `Route Source: ${routeAttribution}${EOL}`
+      : '';
+    const createdAt = `${new Date().toISOString()}${EOL}`;
+    const copyright = `${COPYRIGHT}${tileAttribution}${routeAttribution}${createdAt}`;
+    return zip(this.filename, copyright, type);
   }
 }
 

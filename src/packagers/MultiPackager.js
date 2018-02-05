@@ -1,8 +1,5 @@
-const BasePackager = require('./basePackager');
-
-class BCNavPackager extends BasePackager {
+class BCNavPackager {
   constructor(fileName, ...Packagers) {
-    super();
     this.packagers = Packagers.map(P => new P(fileName));
   }
 

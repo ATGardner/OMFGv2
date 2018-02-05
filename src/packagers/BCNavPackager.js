@@ -55,7 +55,7 @@ class BCNavPackager extends DatabasePackager {
       `DELETE FROM info;
        INSERT INTO info(minzoom, maxzoom) VALUES((SELECT MIN(z) FROM tiles), (SELECT MAX(z) FROM tiles));`,
     );
-    await super.close('BCNav', ...args);
+    return super.close('BCNav', ...args);
   }
 }
 

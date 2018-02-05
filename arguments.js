@@ -1,4 +1,4 @@
-const yargs = require('yargs')
+const parser = require('yargs')
   .usage('Usage: $0 [options]')
   .example(
     'node $0 -i "input1.gpx" "input2.kml" -s OpenStreetMap',
@@ -8,6 +8,7 @@ const yargs = require('yargs')
     inputFiles: {
       alias: 'i',
       conflicts: 'r',
+      // demandOption: true,
       describe: 'An array of input gpx/kml files',
       normalize: true,
       type: 'array',
@@ -20,17 +21,19 @@ const yargs = require('yargs')
     relationId: {
       alias: 'r',
       conflicts: 'i',
+      demandOption: true,
       describe: 'An OSM relation Id',
       type: 'number',
     },
     sourceType: {
       alias: 'st',
       choices: ['Maperitive', 'MB', 'FS', 'WMTS'],
+      describe: 'Source type',
       default: 'WMTS',
     },
     sourceFile: {
       alias: 'sf',
-      describe: 'Source file/Maperitive folder',
+      describe: 'Source file',
       type: 'string',
     },
     sourceName: {
@@ -82,4 +85,16 @@ const yargs = require('yargs')
   .config()
   .epilog('copyright 2017');
 
-module.exports = yargs;
+// function parse(args) {
+//   return new Promise((resolve, reject) => {
+//     parser.parse(args, (err, argv) => {
+//       if (err) {
+//         reject(err);
+//       } else {
+//         resolve(argv);
+//       }
+//     });
+//   });
+// }
+
+module.exports = parser;

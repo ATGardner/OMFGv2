@@ -1,17 +1,17 @@
 const {json} = require('body-parser');
 const express = require('express');
 const winston = require('winston');
-const yargs = require('./arguments');
+const {config} = require('./arguments');
 const {downloadTiles} = require('./src/main');
 
 const app = express();
 
 app.use(json());
 
-app.post('/', async (req, res) => {
+app.post('/downloadTiles', async (req, res) => {
   try {
-    const args = yargs.config(req.body).argv;
-    await downloadTiles(args);
+    const argv = config(req.body).exitProcess(false);
+    await downloadTiles(argv.argv);
     res.send('Done');
   } catch (error) {
     res.status(500).send(error);
@@ -20,4 +20,12 @@ app.post('/', async (req, res) => {
 
 app.listen(3000, () => {
   winston.log('Example app listening on port 3000!');
+});
+
+process.on('uncaughtException', error => {
+  winston.error('Uncaught Exception', error);
+});
+
+process.on('unhandledRejection', error => {
+  winston.error('Unhandled Rejection', error);
 });
