@@ -34,7 +34,6 @@ class Statement {
     });
   }
 }
-
 class Database {
   constructor(
     filename = ':memory:',

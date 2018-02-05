@@ -1,4 +1,3 @@
-const {extname} = require('path');
 const sources = require('./sources.json');
 const MaperitiveSource = require('./maperitiveSource');
 const MBSource = require('./mbSource');

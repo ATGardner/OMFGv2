@@ -5,9 +5,7 @@ const {config} = require('./arguments');
 const {downloadTiles} = require('./src/main');
 
 const app = express();
-
 app.use(json());
-
 app.post('/downloadTiles', async (req, res) => {
   try {
     const argv = config(req.body).exitProcess(false);
@@ -17,15 +15,12 @@ app.post('/downloadTiles', async (req, res) => {
     res.status(500).send(error);
   }
 });
-
 app.listen(3000, () => {
   winston.log('Example app listening on port 3000!');
 });
-
 process.on('uncaughtException', error => {
   winston.error('Uncaught Exception', error);
 });
-
 process.on('unhandledRejection', error => {
   winston.error('Unhandled Rejection', error);
 });

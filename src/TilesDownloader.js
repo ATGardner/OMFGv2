@@ -34,7 +34,6 @@ class TilesDownloader extends EventEmitter {
     const tileDefinitions = [
       ...extractUniqueTileDefinitions(geoJson, this.minZoom, this.maxZoom),
     ];
-
     const total = tileDefinitions.length;
     winston.verbose(`Downloading ${total} tiles`);
     let done = 0;

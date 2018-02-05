@@ -52,10 +52,12 @@ function* extractCoordinates(json) {
 
       return undefined;
     }
+
     case 'Feature': {
       const {geometry} = json;
       return yield* extractCoordinates(geometry);
     }
+
     case 'FeatureCollection': {
       const {features} = json;
       for (const feature of features) {

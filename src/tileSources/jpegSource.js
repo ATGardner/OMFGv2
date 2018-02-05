@@ -1,6 +1,5 @@
 const pngToJpeg = require('png-to-jpeg');
 const moment = require('moment');
-const winston = require('winston');
 const Cache = require('./cache');
 const WMTSSource = require('./wmtsSource');
 

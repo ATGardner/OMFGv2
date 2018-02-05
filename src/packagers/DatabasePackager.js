@@ -3,7 +3,6 @@ const Database = require('../utils/sqlite3-async');
 const {ensurePath, zip} = require('../utils');
 
 const COPYRIGHT = `Created using OMFG (https://github.com/ATGardner/OMFGv2)${EOL}`;
-
 class DatabasePackager {
   constructor(fileName) {
     this.filename = fileName;

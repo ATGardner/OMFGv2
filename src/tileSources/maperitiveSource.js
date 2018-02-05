@@ -7,7 +7,6 @@ const FSSource = require('./fsSource');
 
 const execFileAsync = promisify(execFile);
 const writeFileAsync = promisify(writeFile);
-
 class MaperitiveSource extends FSSource {
   constructor(maperitiveFolder) {
     super(join(maperitiveFolder, 'tiles'));

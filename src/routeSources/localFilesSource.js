@@ -24,15 +24,18 @@ async function readFile(fileName) {
       const doc = readDocFromFile(fileName);
       return gpx(doc);
     }
+
     case '.kml': {
       const doc = readDocFromFile(fileName);
       return kml(doc);
     }
+
     case '.kmz': {
       const kmlString = await readKmlStringFromKmz(fileName);
       const doc = new DOMParser().parseFromString(kmlString);
       return kml(doc);
     }
+
     default:
       throw new Error('Unrecognized file type. Use only gpx/kml files.');
   }
