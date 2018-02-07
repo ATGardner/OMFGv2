@@ -12,7 +12,7 @@ app.post('/downloadTiles', async (req, res) => {
     await downloadTiles(argv.argv);
     res.send('Done');
   } catch (error) {
-    res.status(500).send(error);
+    res.status(500).send(error.toString());
   }
 });
 app.listen(3000, () => {

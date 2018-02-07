@@ -10,8 +10,7 @@ class DatabasePackager {
     this.db = new Database(fileName);
   }
 
-  async init(...args) {
-    await super.init(...args);
+  async init() {
     return this.db.init();
   }
 

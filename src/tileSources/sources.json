@@ -8,7 +8,7 @@
     "type": "TileServer"
   },
   {
-    "Name": "CakTopo FSTopo (2016)",
+    "Name": "CalTopo FSTopo (2016)",
     "Address": "https://ctusfs.s3.amazonaws.com/2016a/{zoom}/{x}/{y}.png",
     "minZoom": 0,
     "maxZoom": 16,

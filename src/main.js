@@ -53,7 +53,9 @@ async function downloadTiles({
     );
     await downloader.getTiles();
   } catch (error) {
-    winston.error(`Failed generating tiles`, error);
+    const message = 'Failed generating tiles';
+    winston.error(message, error);
+    throw new Error(message);
   } finally {
     timer.done('Finished downloading tiles');
   }
