@@ -6,6 +6,10 @@ class MBTilesPackager extends DatabasePackager {
     super(format({name: fileName, ext: '.mbtiles'}));
   }
 
+  get id() {
+    return `MBTiles_${super.id}`;
+  }
+
   async init(source) {
     await super.init(source);
     await this.db.run(
@@ -26,7 +30,7 @@ class MBTilesPackager extends DatabasePackager {
     this.selectStatement = await this.db.prepare(
       'SELECT COUNT(*) AS result FROM tiles WHERE tile_column = $tile_column AND tile_row = $tile_row and zoom_level = $zoom_level;',
     );
-    const name = basename(this.filename);
+    const name = basename(this.fileName);
     await this.setMetadata('name', name);
     await this.setMetadata('type', 'baselayer');
     await this.setMetadata('version', 1);

@@ -41,7 +41,7 @@ describe('sqlite-async', () => {
     return db.close();
   });
 
-  it('fails creating a database with an illegal filename', async () => {
+  it('fails creating a database with an illegal fileName', async () => {
     db = new Database('?');
     try {
       await db.init();

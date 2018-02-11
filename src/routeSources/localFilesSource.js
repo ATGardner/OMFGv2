@@ -47,6 +47,10 @@ class LocalFilesSource {
     this.routeAttribution = routeAttribution;
   }
 
+  get id() {
+    return this.inputFiles.join();
+  }
+
   async getGeoJson() {
     const promises = this.inputFiles.map(readFile);
     const jsons = await Promise.all(promises);

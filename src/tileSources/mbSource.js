@@ -3,10 +3,14 @@ const sqlite3 = require('sqlite3');
 const Database = require('../utils/sqlite3-async');
 
 class MBSource {
-  constructor(filename) {
-    this.db = new Database(filename, sqlite3.OPEN_READ);
-    const ext = extname(filename);
-    this.Name = basename(filename, ext);
+  constructor(fileName) {
+    this.db = new Database(fileName, sqlite3.OPEN_READ);
+    const ext = extname(fileName);
+    this.Name = basename(fileName, ext);
+  }
+
+  get id() {
+    return `MB_${this.Name}`;
   }
 
   async init() {

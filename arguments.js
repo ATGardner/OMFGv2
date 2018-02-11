@@ -21,7 +21,7 @@ const parser = require('yargs')
     relationId: {
       alias: 'r',
       conflicts: 'i',
-      demandOption: true,
+      // demandOption: true,
       describe: 'An OSM relation Id',
       type: 'number',
     },

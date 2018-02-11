@@ -1,6 +1,8 @@
 const {argv} = require('./arguments');
-const {downloadTiles} = require('./src/main');
+const {awaitJob, downloadTiles} = require('./src/main');
 
 (async function() {
-  await downloadTiles(argv);
+  const id = await downloadTiles(argv);
+  const result = await awaitJob(id);
+  console.log(result);
 })();

@@ -8,6 +8,10 @@ class WMTSSource {
     this.cache = new Cache(this.Name);
   }
 
+  get id() {
+    return `WMTS_${this.Name}`;
+  }
+
   init() {
     return this.cache.init();
   }

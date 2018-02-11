@@ -36,11 +36,11 @@ class Statement {
 }
 class Database {
   constructor(
-    filename = ':memory:',
+    fileName = ':memory:',
     mode = sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
   ) {
     this.initPromise = new Promise((resolve, reject) => {
-      this.db = new sqlite3.Database(filename, mode, error => {
+      this.db = new sqlite3.Database(fileName, mode, error => {
         if (error) {
           reject(error);
         } else {

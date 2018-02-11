@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const {
   existsSync,
   mkdirSync,
@@ -65,6 +66,14 @@ function* extractCoordinates(json) {
       }
     }
   }
+}
+
+function generateId(...strings) {
+  const data = strings.join();
+  return crypto
+    .createHash('md5')
+    .update(data)
+    .digest('hex');
 }
 
 function long2tile(lon, zoom) {
@@ -156,10 +165,10 @@ async function addDownload(address, etag, retry = 0) {
   }
 }
 
-function ensurePath(filename) {
-  const path = dirname(filename);
+function ensurePath(fileName) {
+  const path = dirname(fileName);
   if (existsSync(path)) {
-    return existsSync(filename);
+    return existsSync(fileName);
   } else {
     mkdirSync(path);
   }
@@ -178,10 +187,10 @@ async function overpassQuery(query) {
   return result.json();
 }
 
-async function zip(filename, copyright, type) {
+async function zip(fileName, copyright, type) {
   const zip = new JSZip();
-  const {dir, base, name} = parse(filename);
-  const data = readFileSync(filename);
+  const {dir, base, name} = parse(fileName);
+  const data = readFileSync(fileName);
   zip.file(base, data);
   zip.file('copyright.txt', copyright);
   let done = 0;
@@ -202,18 +211,20 @@ async function zip(filename, copyright, type) {
       }
     },
   );
-  const zipFilename = format({dir, name: `${name} - ${type}`, ext: '.zip'});
-  writeFileSync(zipFilename, content);
-  unlinkSync(filename);
+  const zipFileName = format({dir, name: `${name} - ${type}`, ext: '.zip'});
+  writeFileSync(zipFileName, content);
+  unlinkSync(fileName);
+  return zipFileName;
 }
 
 module.exports = {
   addDownload,
-  extractCoordinates,
   buildTileUrl,
   coordinates2Tile,
   coordinates2Tiles,
   ensurePath,
+  extractCoordinates,
+  generateId,
   overpassQuery,
   zip,
 };

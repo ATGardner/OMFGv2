@@ -6,6 +6,10 @@ class BCNavPackager extends DatabasePackager {
     super(format({name: fileName, ext: '.sqlitedb'}));
   }
 
+  get id() {
+    return `BCNav_${super.id}`;
+  }
+
   async init() {
     await super.init();
     await this.db.run(

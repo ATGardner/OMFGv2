@@ -19,6 +19,10 @@ class MaperitiveSource extends FSSource {
     });
   }
 
+  get id() {
+    return this.Name;
+  }
+
   async getTileData(tile) {
     const data = super.getTileData(tile);
     if (data) {
@@ -44,19 +48,19 @@ class MaperitiveSource extends FSSource {
   }
 
   async createScriptInputFile(tilesToCreate) {
-    const tileFilename = join(this.maperitiveFolder, 'tiles.txt');
+    const tileFileName = join(this.maperitiveFolder, 'tiles.txt');
     const tilesString = tilesToCreate
       .map(t => `${t.x},${t.y},${t.zoom}`)
       .join(EOL);
-    await writeFileAsync(tileFilename, tilesString);
+    await writeFileAsync(tileFileName, tilesString);
   }
 
   async callMaperitiveAsync() {
-    const scriptFilename = resolve('src', 'sources', 'omfg_tile_command.py');
+    const scriptFileName = resolve('src', 'sources', 'omfg_tile_command.py');
     const maperitiveCommandLine = join(this.maperitiveFolder, 'maperitive.exe');
     return execFileAsync(
       maperitiveCommandLine,
-      [/* '-exitafter',*/ scriptFilename],
+      [/* '-exitafter',*/ scriptFileName],
       {cwd: this.maperitiveFolder},
     );
   }

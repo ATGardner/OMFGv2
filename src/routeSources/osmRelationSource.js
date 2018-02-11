@@ -7,6 +7,10 @@ class OSMRelationSource {
     this.routeAttribution = `https://hiking.waymarkedtrails.org/#route?id=${relationId}`;
   }
 
+  get id() {
+    return this.relationId;
+  }
+
   async getGeoJson() {
     const osmJson = await overpassQuery(
       `relation(${this.relationId});(._;>;);out body meta;`,

@@ -5,9 +5,13 @@ const {ensurePath, zip} = require('../utils');
 const COPYRIGHT = `Created using OMFG (https://github.com/ATGardner/OMFGv2)${EOL}`;
 class DatabasePackager {
   constructor(fileName) {
-    this.filename = fileName;
+    this.fileName = fileName;
     this.newFile = !ensurePath(fileName);
     this.db = new Database(fileName);
+  }
+
+  get id() {
+    return `DB_${this.fileName}`;
   }
 
   async init() {
@@ -24,7 +28,7 @@ class DatabasePackager {
       : '';
     const createdAt = `${new Date().toISOString()}${EOL}`;
     const copyright = `${COPYRIGHT}${tileAttribution}${routeAttribution}${createdAt}`;
-    return zip(this.filename, copyright, type);
+    return zip(this.fileName, copyright, type);
   }
 }
 

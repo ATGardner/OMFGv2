@@ -9,6 +9,10 @@ class JPEGSource extends WMTSSource {
     this.jpegCache = new Cache(`${this.Name}-jpeg`);
   }
 
+  get id() {
+    return `JPEG_${this.Name}`;
+  }
+
   async init() {
     await super.init();
     return this.jpegCache.init();

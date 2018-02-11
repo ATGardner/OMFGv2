@@ -3,13 +3,13 @@ const {ensurePath} = require('../utils');
 const Database = require('../utils/sqlite3-async');
 
 class Cache {
-  constructor(filename) {
-    if (filename) {
-      filename = join('cache', filename);
-      this.newCache = !ensurePath(filename);
+  constructor(fileName) {
+    if (fileName) {
+      fileName = join('cache', fileName);
+      this.newCache = !ensurePath(fileName);
     }
 
-    this.db = new Database(filename);
+    this.db = new Database(fileName);
   }
 
   async init() {

@@ -3,6 +3,14 @@ class BCNavPackager {
     this.packagers = Packagers.map(P => new P(fileName));
   }
 
+  get id() {
+    return `Multi_${this.packagers[0].fileName}`;
+  }
+
+  get fileName() {
+    return this.packagers.map(p => p.fileName);
+  }
+
   init(...args) {
     return Promise.all(this.packagers.map(p => p.init(...args)));
   }

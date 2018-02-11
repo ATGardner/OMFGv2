@@ -6,6 +6,10 @@ class FSSource {
     this.basePath = basePath;
   }
 
+  get id() {
+    return `FS_${this.basePath}`;
+  }
+
   init() {
     // do nothing
   }
