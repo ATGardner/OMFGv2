@@ -24,10 +24,15 @@ function awaitJob(id) {
 }
 
 function checkStatus(id) {
-  const {code = 200, status, result} = jobs.get(id) || {
-    code: 404,
-    status: 'Not Found',
-  };
+  const job = jobs.get(id);
+  if (!job) {
+    return {
+      code: 404,
+      status: 'Not Found',
+    };
+  }
+
+  const {state: {code = 200, status, result}} = job;
   if (status === 'Done') {
     jobs.delete(id);
   }

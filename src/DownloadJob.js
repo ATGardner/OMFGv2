@@ -23,10 +23,23 @@ class Counters {
     this._total = total;
     this._done = 0;
     this._failed = 0;
+    this.t0 = new Date().getTime();
+  }
+
+  get completed() {
+    return this._done + this._failed;
   }
 
   get percent() {
-    return Math.floor(100 * (this._done + this._failed) / this._total);
+    return Math.floor(100 * this.completed / this._total);
+  }
+
+  get estimate() {
+    const t1 = new Date().getTime();
+    const ty = t1 - this.t0;
+    const msPerCount = ty / this.completed;
+    const remaining = this._total - this.completed;
+    return msPerCount * remaining;
   }
 
   incrementDone() {
@@ -57,7 +70,15 @@ class DownloadJob {
     this.packager = packager;
     this.minZoom = minZoom;
     this.maxZoom = maxZoom;
-    this.state = {status: 'N/A'};
+    this._state = {status: 'N/A'};
+  }
+
+  get state() {
+    if (this.counters) {
+      this._state.result = this.counters.estimate;
+    }
+
+    return this._state;
   }
 
   start() {
@@ -72,10 +93,8 @@ class DownloadJob {
         ...extractUniqueTileDefinitions(geoJson, this.minZoom, this.maxZoom),
       ];
       const total = tileDefinitions.length;
-      const counters = new Counters(total);
+      this.counters = new Counters(total);
       winston.verbose(`Downloading ${total} tiles`);
-      this.state.done = 0;
-      this.state.failed = 0;
       let percent = 0;
       const promises = [];
       await this.tileSource.init();
@@ -85,7 +104,7 @@ class DownloadJob {
           try {
             const hasData = await this.packager.hasTile(td);
             if (hasData) {
-              counters.incrementDone();
+              this.counters.incrementDone();
               // winston.verbose(`Packager has tile ${td.toString()}`);
               return;
             }
@@ -93,21 +112,21 @@ class DownloadJob {
             const data = await this.tileSource.getTileData(td);
             if (data) {
               await this.packager.addTile(td, data);
-              counters.incrementDone();
+              this.counters.incrementDone();
             } else {
-              counters.incrementFailed();
+              this.counters.incrementFailed();
             }
           } catch (error) {
             winston.error(
               `Failed getting tile ${td.toString()}`,
               error.message,
             );
-            counters.incrementFailed();
+            this.counters.incrementFailed();
           } finally {
-            const newPercent = counters.percent;
+            const newPercent = this.counters.percent;
             if (newPercent > percent) {
               percent = newPercent;
-              winston.verbose(counters.toString());
+              winston.verbose(this.counters.toString());
             }
           }
         })();
@@ -119,14 +138,15 @@ class DownloadJob {
       }
 
       await Promise.all(promises);
-      this.result = await this.packager.close(
+      this.counters = undefined;
+      this.state.result = await this.packager.close(
         this.routeSource.routeAttribution,
         this.tileSource.attribution,
       );
       this.state.status = 'Done';
     } catch (error) {
       this.state.result = error;
-      this.state.status = 'Failed';
+      this.state.result = 'Failed';
       throw error;
     }
   }
