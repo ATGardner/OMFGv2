@@ -7,6 +7,7 @@ const {
   writeFileSync,
 } = require('fs');
 const {dirname, parse, format} = require('path');
+const {promisify} = require('util');
 const fetch = require('node-fetch');
 const PQueue = require('p-queue');
 const winston = require('winston');
@@ -15,12 +16,7 @@ const {LatLonEllipsoidal: LatLon} = require('geodesy');
 const JSZip = require('jszip');
 
 const queue = new PQueue({concurrency: 10});
-
-function delay(ms) {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
-}
+const setTimeoutAsync = promisify(setTimeout);
 
 function* extractCoordinates(json) {
   const {type, coordinates} = json;
@@ -134,6 +130,7 @@ async function downloadTile(address, etag) {
     options.headers['If-None-Match'] = etag;
   }
 
+  // await setTimeoutAsync(1000);
   const response = await fetch(address, options);
   etag = response.headers.get('etag');
   const lastCheck = response.headers.get('date');
@@ -156,7 +153,7 @@ async function addDownload(address, etag, retry = 0) {
   } catch (error) {
     if (error.code === 'ECONNRESET' && retry < 50) {
       retry += 1;
-      await delay(retry * 500);
+      await setTimeoutAsync(retry * 500);
       winston.warn(`Retrying ${address}, ${retry} attempt`);
       return addDownload(address, etag, retry);
     } else {

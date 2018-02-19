@@ -1,5 +1,8 @@
+const {promisify} = require('util');
 const winston = require('winston');
 const {coordinates2Tiles, extractCoordinates, generateId} = require('./utils');
+
+const setTimeoutPromise = promisify(setTimeout);
 
 function* extractUniqueTileDefinitions(json, minZoom, maxZoom) {
   const tileIds = new Set();
@@ -83,6 +86,7 @@ class DownloadJob {
 
   start() {
     this.promise = this.getTiles();
+    return this.id;
   }
 
   async getTiles() {

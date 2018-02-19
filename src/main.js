@@ -37,6 +37,7 @@ function checkStatus(id) {
     jobs.delete(id);
   }
 
+  winston.info(`code: ${code}, status: ${status}, result: ${result}`);
   return {code, status, result};
 }
 
