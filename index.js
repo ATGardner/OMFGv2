@@ -1,24 +1,24 @@
 const {json} = require('body-parser');
 const express = require('express');
 const winston = require('winston');
-const parser = require('./arguments');
-const {checkStatus, downloadTiles} = require('./src/main');
+const getParser = require('./arguments');
+const downloadManager = require('./src/DownloadManager');
 
 const app = express();
 app.use(json());
 app.post('/downloadTiles', async (req, res, next) => {
   try {
-    const {argv} = parser()
+    const {argv} = getParser()
       .config(req.body)
       .exitProcess(false);
-    const id = await downloadTiles(argv);
+    const id = await downloadManager.startDownload(argv);
     res.status(202).send({id});
   } catch (error) {
     next(error, req, res);
   }
 });
 app.get('/queue/:id', async ({params: {id}}, res) => {
-  const {code, status, result} = checkStatus(id);
+  const {code, status, result} = downloadManager.checkStatus(id);
   res.status(code).send({status, result});
 });
 // eslint-disable-next-line no-unused-vars

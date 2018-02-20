@@ -1,7 +1,8 @@
+// const yargs = require('yargs');
 const parser = require('yargs/yargs');
 
-function getParser() {
-  return parser()
+function getParser(processArgs) {
+  return parser(processArgs)
     .usage('Usage: $0 [options]')
     .example(
       'node $0 -i "input1.gpx" "input2.kml" -s OpenStreetMap',
