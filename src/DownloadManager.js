@@ -46,16 +46,6 @@ class DownloadManager {
     return {code, status, result};
   }
 
-  async addJob(job) {
-    this.downloading = true;
-    this.jobs.set(job.id, job);
-    try {
-      await job.start();
-    } finally {
-      this.downloading = false;
-    }
-  }
-
   startDownload({
     inputFiles,
     routeAttribution,
@@ -89,7 +79,11 @@ class DownloadManager {
       minZoom,
       maxZoom,
     );
-    this.addJob(job);
+    this.downloading = true;
+    this.jobs.set(job.id, job);
+    job
+      .start()
+      .then(() => (this.downloading = false), () => (this.downloading = false));
     return job.id;
   }
 }

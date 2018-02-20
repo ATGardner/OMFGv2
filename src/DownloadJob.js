@@ -84,12 +84,7 @@ class DownloadJob {
     return this._state;
   }
 
-  start() {
-    this.promise = this.getTiles();
-    return this.id;
-  }
-
-  async getTiles() {
+  async start() {
     try {
       this.state.status = 'Pending';
       const geoJson = await this.routeSource.getGeoJson();
