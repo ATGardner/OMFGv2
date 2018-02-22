@@ -1,24 +1,21 @@
 {
   "extends": [
     "eslint:recommended",
+    "prettier",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": [
     "prettier"
   ],
   "parserOptions": {
     "ecmaVersion": 8,
     "sourceType": "module"
-  },
-  "plugins": [
-    "prettier"
-  ],
+      },
   "env": {
     "es6": true,
     "node": true
   },
   "rules": {
-    "prettier/prettier": [
-      "error",
-      "fb"
-    ],
     "linebreak-stlye": "off",
     "padding-line-between-statements": [
       "error",
