@@ -18,7 +18,7 @@ app.post('/downloadTiles', async (req, res, next) => {
   }
 });
 app.get('/queue/:id', async ({params: {id}}, res) => {
-  const {code, status, result} = downloadManager.checkStatus(id);
+  const {code, status, result} = downloadManager.getJobStatus(id);
   res.status(code).send({status, result});
 });
 // eslint-disable-next-line no-unused-vars

@@ -28,7 +28,7 @@ class DownloadManager {
     return job.promise;
   }
 
-  checkStatus(id) {
+  getJobStatus(id) {
     const job = this.jobs.get(id);
     if (!job) {
       return {
@@ -44,6 +44,16 @@ class DownloadManager {
 
     winston.info(`code: ${code}, status: ${status}, result: ${result}`);
     return {code, status, result};
+  }
+
+  async addDownload(job) {
+    this.downloading = true;
+    this.jobs.set(job.id, job);
+    try {
+      await job.start();
+    } finally {
+      this.downloading = false;
+    }
   }
 
   startDownload({
@@ -79,11 +89,7 @@ class DownloadManager {
       minZoom,
       maxZoom,
     );
-    this.downloading = true;
-    this.jobs.set(job.id, job);
-    job
-      .start()
-      .then(() => (this.downloading = false), () => (this.downloading = false));
+    this.addDownload(job);
     return job.id;
   }
 }
