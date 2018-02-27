@@ -1,9 +1,13 @@
+//npm i --target_platform=win --target_arch=x64
+
+const {promisify} = require('util');
 const {json} = require('body-parser');
 const express = require('express');
 const winston = require('winston');
 const getParser = require('./arguments');
 const downloadManager = require('./src/DownloadManager');
 
+const setTimeoutAsync = promisify(setTimeout);
 const app = express();
 app.use(json());
 app.post('/downloadTiles', async (req, res, next) => {
@@ -11,7 +15,8 @@ app.post('/downloadTiles', async (req, res, next) => {
     const {argv} = getParser()
       .config(req.body)
       .exitProcess(false);
-    const id = await downloadManager.startDownload(argv);
+    await setTimeoutAsync(100);
+    const id = argv; //await downloadManager.startDownload(argv);
     res.status(202).send({id});
   } catch (error) {
     next(error, req, res);
@@ -27,7 +32,8 @@ app.use((err, req, res, next) => {
   res.status(500).send(err.toString());
 });
 app.listen(3000, () => {
-  winston.log('Example app listening on port 3000!');
+  winston.info('Example app listening on port 3000!');
+  process.send && process.send('ready');
 });
 process.on('uncaughtException', error => {
   winston.error('Uncaught Exception', error);
