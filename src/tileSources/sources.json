@@ -25,7 +25,7 @@
   },
   {
     "Name": "CalTopo MapBuilder Topo",
-    "Address": "https://caltopo.com/resource/imagery/mapbuilder/cs-60-40-c21BB6100-h22-a21-r22-t22d-m21-p21/{zoom}/{x}/{y}.png",
+    "Address": "https://caltopo.com/tile/mb_topo/{zoom}/{x}/{y}.png",
     "minZoom": 5,
     "maxZoom": 16,
     "attribution": "Tiles © CalTopo (https://caltopo.com/map.html#b=mbt), Data by OpenStreetMap (https://openstreetmap.org) under ODbL (https://opendatacommons.org/licenses/odbl/summary/).",
@@ -87,6 +87,6 @@
     "maxZoom": 17,
     "attribution": "Map data © OpenStreetMap (https://www.openstreetmap.org/#map=11/50.8287/13.051) under ODbL (https://www.openstreetmap.org/copyright) elevation data by SRTM/ASTER Base map: OpenTopoMap (https://opentopomap.org/)(CC-by-SA (https://creativecommons.org/licenses/by-sa/3.0/))",
     "type": "TileServer",
-    "compress": true
+    "compress": false
   }
 ]

@@ -1,0 +1,16 @@
+runtime: nodejs
+env: flexible
+service: omfg
+skip_files:
+  - .idea
+  - cache
+  - docker
+  - output
+  - test
+api_version: '1.0'
+threadsafe: true
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 1
+  cpu_utilization:
+    target_utilization: 0.5

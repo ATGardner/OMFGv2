@@ -1,11 +1,11 @@
 const {extname, basename, join} = require('path');
-const winston = require('winston');
+const {getLogger} = require('./utils/logging');
 const {getPackager} = require('./packagers');
 const {getRouteSource} = require('./routeSources');
 const {getTileSource} = require('./tileSources');
 const DownloadJob = require('./DownloadJob');
 
-winston.level = 'verbose';
+const logger = getLogger('downloadManager');
 
 function generateOutputFile([firstInput], sourceName, minZoom, maxZoom) {
   const ext = extname(firstInput);
@@ -42,7 +42,7 @@ class DownloadManager {
       this.jobs.delete(id);
     }
 
-    winston.info(`code: ${code}, status: ${status}, result: ${result}`);
+    logger.info(`code: ${code}, status: ${status}, result: ${result}`);
     return {code, status, result};
   }
 

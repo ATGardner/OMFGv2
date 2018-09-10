@@ -2,7 +2,6 @@ version: '3.5'
 services:
     omfg:
         build:
-            context: .
-            dockerfile: prod.dockerfile
-        image: omfg
-W
+            context: ..
+            dockerfile: docker/prod.dockerfile
+        image: atgardner/omfg:prod

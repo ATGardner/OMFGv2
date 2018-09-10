@@ -10,12 +10,14 @@ const {dirname, parse, format} = require('path');
 const {promisify} = require('util');
 const fetch = require('node-fetch');
 const PQueue = require('p-queue');
-const winston = require('winston');
-const Tile = require('./Tile');
-const {LatLonEllipsoidal: LatLon} = require('geodesy');
 const JSZip = require('jszip');
+const {LatLonEllipsoidal: LatLon} = require('geodesy');
+const DownloadError = require('./DownloadError');
+const {getLogger} = require('./logging');
+const Tile = require('./Tile');
 
-const queue = new PQueue({concurrency: 10});
+const logger = getLogger('utils');
+const queue = new PQueue({concurrency: 2});
 const setTimeoutAsync = promisify(setTimeout);
 
 function* extractCoordinates(json) {
@@ -73,17 +75,17 @@ function generateId(...strings) {
 }
 
 function long2tile(lon, zoom) {
-  return Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
+  return Math.floor(((lon + 180) / 360) * Math.pow(2, zoom));
 }
 
 function lat2tile(lat, zoom) {
   return Math.floor(
-    (1 -
+    ((1 -
       Math.log(
-        Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180),
+        Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180),
       ) /
         Math.PI) /
-      2 *
+      2) *
       Math.pow(2, zoom),
   );
 }
@@ -135,12 +137,12 @@ async function downloadTile(address, etag) {
   etag = response.headers.get('etag');
   const lastCheck = response.headers.get('date');
   if (response.status === 304) {
-    winston.verbose(`etag matched, skipped getting data, address: ${address}`);
+    logger.verbose(`etag matched, skipped getting data, address: ${address}`);
     return {lastCheck, etag};
   }
 
   if (!response.ok) {
-    throw new Error(response.statusText);
+    throw new DownloadError(response.status, response.statusText);
   }
 
   const data = await response.buffer();
@@ -151,12 +153,14 @@ async function addDownload(address, etag, retry = 0) {
   try {
     return await queue.add(() => downloadTile(address, etag));
   } catch (error) {
-    if (error.code === 'ECONNRESET' && retry < 50) {
+    const shouldRetry = error.code === 'ECONNRESET' || error.code === 503;
+    if (shouldRetry && retry < 50) {
       retry += 1;
       await setTimeoutAsync(retry * 500);
-      winston.warn(`Retrying ${address}, ${retry} attempt`);
+      logger.warn(`Retrying ${address}, ${retry} attempt`);
       return addDownload(address, etag, retry);
     } else {
+      logger.error(`Failed downloading ${address}`, error);
       throw error;
     }
   }
@@ -204,7 +208,7 @@ async function zip(fileName, copyright, type) {
       percent = +percent.toFixed(0);
       if (percent > done) {
         done = percent;
-        winston.verbose(`Zip progression: ${percent} %`);
+        logger.verbose(`Zip progression: ${percent} %`);
       }
     },
   );

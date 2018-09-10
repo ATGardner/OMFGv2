@@ -2,10 +2,10 @@ version: '3.5'
 services:
     omfg:
         build:
-            context: .
-            dockerfile: dev.dockerfile
+            context: ..
+            dockerfile: docker/dev.dockerfile
         container_name: omfg
-        image: omfg
+        image: atgardner/omfg:dev
         ports:
             - 3000:3000
             - 9229:9229

@@ -32,7 +32,6 @@ class WMTSSource {
         .subtract(1, 'day')
         .isBefore(lastCheck)
     ) {
-      // winston.verbose(`Got tile ${tile.toString()} from cache`);
       return cachedData;
     }
 

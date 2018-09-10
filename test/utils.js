@@ -2,7 +2,6 @@ const {existsSync, rmdirSync} = require('fs');
 const chai = require('chai');
 const chaiString = require('chai-string');
 const {
-  readGeoJson,
   extractCoordinates,
   coordinates2Tile,
   coordinates2Tiles,
@@ -15,54 +14,6 @@ chai.use(chaiString);
 const {expect} = chai;
 
 describe('Utils', () => {
-  describe('readGeoJson', () => {
-    function testReadGeoJson(input) {
-      const json = readGeoJson(input);
-      expect(json).to.exist;
-      expect(json).to.have.property('type');
-    }
-
-    it('reads GeoJson from gpx file', () => {
-      const input = 'test/inputs/simple.gpx';
-      testReadGeoJson(input);
-    });
-
-    it('reads GeoJson from kml file', () => {
-      const input = 'test/inputs/simple.kml';
-      testReadGeoJson(input);
-    });
-
-    it('reads GeoJson from kmz file', () => {
-      const input = 'test/inputs/simple.kmz';
-      testReadGeoJson(input);
-    });
-
-    it('throws when trying to read an unrecognized file type', done => {
-      try {
-        const input = 'test/inputs/simple.xxx';
-        testReadGeoJson(input);
-        done(new Error('File type "xxx" is not recognizable'));
-      } catch (error) {
-        expect(error).to.have.property(
-          'message',
-          'Unrecognized file type. Use only gpx/kml files.',
-        );
-        done();
-      }
-    });
-
-    it('throws when trying to read a non-existing file', done => {
-      try {
-        const input = 'test/inputs/non-existing.gpx';
-        testReadGeoJson(input);
-        done(new Error('File does not exist'));
-      } catch (error) {
-        expect(error.message).to.startWith('ENOENT: no such file or directory');
-        done();
-      }
-    });
-  });
-
   describe('extractCoordinates', () => {
     it('extracts coordinates from a Point', () => {
       const input = {

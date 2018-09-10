@@ -34,7 +34,6 @@ class JPEGSource extends WMTSSource {
         .subtract(1, 'day')
         .isBefore(lastCheck)
     ) {
-      // winston.verbose(`Got jpeg tile ${tile.toString()} from cache`);
       return cachedData;
     }
 

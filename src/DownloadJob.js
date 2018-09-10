@@ -1,8 +1,7 @@
-const {promisify} = require('util');
-const winston = require('winston');
+const {getLogger} = require('./utils/logging');
 const {coordinates2Tiles, extractCoordinates, generateId} = require('./utils');
 
-const setTimeoutPromise = promisify(setTimeout);
+const logger = getLogger('downloadJob');
 
 function* extractUniqueTileDefinitions(json, minZoom, maxZoom) {
   const tileIds = new Set();
@@ -93,7 +92,7 @@ class DownloadJob {
       ];
       const total = tileDefinitions.length;
       this.counters = new Counters(total);
-      winston.verbose(`Downloading ${total} tiles`);
+      logger.verbose(`Downloading ${total} tiles`);
       let percent = 0;
       const promises = [];
       await this.tileSource.init();
@@ -104,7 +103,7 @@ class DownloadJob {
             const hasData = await this.packager.hasTile(td);
             if (hasData) {
               this.counters.incrementDone();
-              // winston.verbose(`Packager has tile ${td.toString()}`);
+              // logger.verbose(`Packager has tile ${td.toString()}`);
               return;
             }
 
@@ -116,16 +115,13 @@ class DownloadJob {
               this.counters.incrementFailed();
             }
           } catch (error) {
-            winston.error(
-              `Failed getting tile ${td.toString()}`,
-              error.message,
-            );
+            logger.error(`Failed getting tile ${td.toString()}`, error.message);
             this.counters.incrementFailed();
           } finally {
             const newPercent = this.counters.percent;
             if (newPercent > percent) {
               percent = newPercent;
-              winston.verbose(this.counters.toString());
+              logger.verbose(this.counters.toString());
             }
           }
         })();
