@@ -37,7 +37,9 @@ class DownloadManager {
       };
     }
 
-    const {state: {code = 200, status, result}} = job;
+    const {
+      state: {code = 200, status, result},
+    } = job;
     if (status === 'Done') {
       this.jobs.delete(id);
     }

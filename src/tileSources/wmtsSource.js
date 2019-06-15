@@ -35,13 +35,21 @@ class WMTSSource {
       return cachedData;
     }
 
-    const address = buildTileUrl(this.Address, tile);
-    const {data, lastCheck: newLastCheck, etag: newEtag} = await addDownload(
-      address,
-      etag,
-    );
-    await this.updateCache(tile, data, newLastCheck, newEtag);
-    return data || cachedData;
+    try {
+      const address = buildTileUrl(this.Address, tile);
+      const {data, lastCheck: newLastCheck, etag: newEtag} = await addDownload(
+        address,
+        etag,
+      );
+      await this.updateCache(tile, data, newLastCheck, newEtag);
+      return data || cachedData;
+    } catch (error) {
+      if (cachedData) {
+        return cachedData;
+      }
+
+      throw error;
+    }
   }
 
   close() {

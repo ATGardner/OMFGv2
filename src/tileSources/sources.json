@@ -84,8 +84,17 @@
     "Name": "OpenTopoMap",
     "Address": "https://[abc].tile.opentopomap.org/{z}/{x}/{y}.png",
     "minZoom": 1,
-    "maxZoom": 17,
+    "maxZoom": 15,
     "attribution": "Map data © OpenStreetMap (https://www.openstreetmap.org/#map=11/50.8287/13.051) under ODbL (https://www.openstreetmap.org/copyright) elevation data by SRTM/ASTER Base map: OpenTopoMap (https://opentopomap.org/)(CC-by-SA (https://creativecommons.org/licenses/by-sa/3.0/))",
+    "type": "TileServer",
+    "compress": false
+  },
+  {
+    "Name": "freizeitkarte",
+    "Address": "https://map.freizeitkarte.net/tiles/{z}/{x}/{y}.png",
+    "minZoom": 0,
+    "maxZoom": 20,
+    "attribution": "Map tiles © Schneider Geo, Map data © OpenStreetMap contributor",
     "type": "TileServer",
     "compress": false
   }

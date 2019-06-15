@@ -18,7 +18,7 @@ async function readKmlStringFromKmz(fileName) {
 }
 
 async function readFile(fileName) {
-  const ext = extname(fileName);
+  const ext = extname(fileName).toLocaleLowerCase();
   switch (ext) {
     case '.gpx': {
       const doc = readDocFromFile(fileName);

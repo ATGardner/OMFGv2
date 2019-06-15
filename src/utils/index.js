@@ -9,7 +9,7 @@ const {
 const {dirname, parse, format} = require('path');
 const {promisify} = require('util');
 const fetch = require('node-fetch');
-const PQueue = require('p-queue');
+const {default: PQueue} = require('p-queue');
 const JSZip = require('jszip');
 const {LatLonEllipsoidal: LatLon} = require('geodesy');
 const DownloadError = require('./DownloadError');
@@ -17,7 +17,7 @@ const {getLogger} = require('./logging');
 const Tile = require('./Tile');
 
 const logger = getLogger('utils');
-const queue = new PQueue({concurrency: 2});
+const queue = new PQueue({concurrency: 10});
 const setTimeoutAsync = promisify(setTimeout);
 
 function* extractCoordinates(json) {
@@ -132,7 +132,6 @@ async function downloadTile(address, etag) {
     options.headers['If-None-Match'] = etag;
   }
 
-  // await setTimeoutAsync(1000);
   const response = await fetch(address, options);
   etag = response.headers.get('etag');
   const lastCheck = response.headers.get('date');
@@ -153,14 +152,22 @@ async function addDownload(address, etag, retry = 0) {
   try {
     return await queue.add(() => downloadTile(address, etag));
   } catch (error) {
-    const shouldRetry = error.code === 'ECONNRESET' || error.code === 503;
-    if (shouldRetry && retry < 50) {
-      retry += 1;
-      await setTimeoutAsync(retry * 500);
-      logger.warn(`Retrying ${address}, ${retry} attempt`);
-      return addDownload(address, etag, retry);
+    const {code} = error;
+    const shouldRetry =
+      !etag &&
+      (code === 'ECONNRESET' ||
+        code === 'ECONNREFUSED' ||
+        code === 'ETIMEDOUT' ||
+        code === 503);
+    if (shouldRetry && retry < 15) {
+      const timeout = 1000 * Math.min(2 ** retry, 60);
+      await setTimeoutAsync(timeout);
+      logger.warn(
+        `Retrying ${address}, after waiting ${timeout}ms, ${retry} attempt`,
+      );
+      return addDownload(address, etag, retry + 1);
     } else {
-      logger.error(`Failed downloading ${address}`, error);
+      logger.error(`Failed downloading ${address}, code: ${code}`, error);
       throw error;
     }
   }
