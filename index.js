@@ -1,16 +1,9 @@
 //npm i --target_platform=win --target_arch=x64
 
-if (process.env.NODE_ENV === 'production') {
-  require('@google-cloud/trace-agent').start();
-  require('@google-cloud/debug-agent').start();
-}
-
-const {json} = require('body-parser');
-const express = require('express');
-const getParser = require('./arguments');
-const downloadManager = require('./src/DownloadManager');
-const {requestLogger, errorLogger, getLogger} = require('./src/utils/logging');
-
+import express from 'express';
+import {getParser} from './arguments.js';
+import downloadManager from './src/DownloadManager.js';
+import {errorLogger, getLogger, requestLogger} from './src/utils/logging.js';
 const logger = getLogger('index');
 const app = express();
 app.use(json());

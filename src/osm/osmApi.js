@@ -1,6 +1,4 @@
-'use strict';
-
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 async function request(query) {
   const body = `[out:json][timeout:25];${query}`;
@@ -15,10 +13,6 @@ async function request(query) {
   return result.json();
 }
 
-function fetchRelation(relationId) {
+export function fetchRelation(relationId) {
   return request(`relation(${relationId});(._;>;);out body meta;`);
 }
-
-module.exports = {
-  fetchRelation,
-};

@@ -12,6 +12,7 @@
   },
   "author": "Noam (\"Amtrak\") Gal",
   "license": "ISC",
+  "type": "module",
   "engines": {
     "node": "9.x"
   },
@@ -26,9 +27,6 @@
     "prettier": "^1.18.2"
   },
   "dependencies": {
-    "@google-cloud/debug-agent": "^4.0.3",
-    "@google-cloud/logging-winston": "^2.0.1",
-    "@google-cloud/trace-agent": "^4.1.1",
     "@mapbox/togeojson": "^0.16.0",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",

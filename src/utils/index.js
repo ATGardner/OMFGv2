@@ -1,238 +1,1 @@
-const crypto = require('crypto');
-const {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  unlinkSync,
-  writeFileSync,
-} = require('fs');
-const {dirname, parse, format} = require('path');
-const {promisify} = require('util');
-const fetch = require('node-fetch');
-const {default: PQueue} = require('p-queue');
-const JSZip = require('jszip');
-const {LatLonEllipsoidal: LatLon} = require('geodesy');
-const DownloadError = require('./DownloadError');
-const {getLogger} = require('./logging');
-const Tile = require('./Tile');
-
-const logger = getLogger('utils');
-const queue = new PQueue({concurrency: 10});
-const setTimeoutAsync = promisify(setTimeout);
-
-function* extractCoordinates(json) {
-  const {type, coordinates} = json;
-  switch (type) {
-    case 'Point':
-      return yield coordinates;
-    case 'MultiPoint':
-    case 'LineString':
-      return yield* coordinates;
-    case 'MultiLineString':
-    case 'Polygon':
-      for (const c of coordinates) {
-        yield* c;
-      }
-
-      return undefined;
-    case 'MultiPolygon':
-      for (const outer of coordinates) {
-        for (const inner of outer) {
-          yield* inner;
-        }
-      }
-
-      return undefined;
-    case 'GeometryCollection': {
-      const {geometries} = json;
-      for (const geometry of geometries) {
-        yield* extractCoordinates(geometry);
-      }
-
-      return undefined;
-    }
-
-    case 'Feature': {
-      const {geometry} = json;
-      return yield* extractCoordinates(geometry);
-    }
-
-    case 'FeatureCollection': {
-      const {features} = json;
-      for (const feature of features) {
-        yield* extractCoordinates(feature);
-      }
-    }
-  }
-}
-
-function generateId(...strings) {
-  const data = strings.join();
-  return crypto
-    .createHash('md5')
-    .update(data)
-    .digest('hex');
-}
-
-function long2tile(lon, zoom) {
-  return Math.floor(((lon + 180) / 360) * Math.pow(2, zoom));
-}
-
-function lat2tile(lat, zoom) {
-  return Math.floor(
-    ((1 -
-      Math.log(
-        Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180),
-      ) /
-        Math.PI) /
-      2) *
-      Math.pow(2, zoom),
-  );
-}
-
-function coordinates2Tile([lon, lat], zoom) {
-  const x = long2tile(lon, zoom);
-  const y = lat2tile(lat, zoom);
-  return new Tile(x, y, zoom);
-}
-
-function* coordinates2Tiles([lon, lat], zoom, buffer = 1000) {
-  const center = new LatLon(lat, lon);
-  const nw = center.destinationPoint(buffer, 315);
-  const nwX = long2tile(nw.lon, zoom);
-  const nwY = lat2tile(nw.lat, zoom);
-  const se = center.destinationPoint(buffer, 135);
-  const seX = long2tile(se.lon, zoom);
-  const seY = lat2tile(se.lat, zoom);
-  for (let x = nwX; x <= seX; x += 1) {
-    for (let y = nwY; y <= seY; y += 1) {
-      yield new Tile(x, y, zoom);
-    }
-  }
-}
-
-let counter = -1;
-
-function buildTileUrl(addressTemplate, tile) {
-  return addressTemplate
-    .replace(/{x}/, tile.x)
-    .replace(/{y}/, tile.y)
-    .replace(/{zoom}|{z}/, tile.zoom)
-    .replace(/\[(.*)]/, (match, subDomains) => {
-      counter = (counter + 1) % subDomains.length;
-      return subDomains[counter];
-    });
-}
-
-async function downloadTile(address, etag) {
-  const options = {
-    headers: {},
-  };
-  if (etag) {
-    options.headers['If-None-Match'] = etag;
-  }
-
-  const response = await fetch(address, options);
-  etag = response.headers.get('etag');
-  const lastCheck = response.headers.get('date');
-  if (response.status === 304) {
-    logger.verbose(`etag matched, skipped getting data, address: ${address}`);
-    return {lastCheck, etag};
-  }
-
-  if (!response.ok) {
-    throw new DownloadError(response.status, response.statusText);
-  }
-
-  const data = await response.buffer();
-  return {data, lastCheck, etag};
-}
-
-async function addDownload(address, etag, retry = 0) {
-  try {
-    return await queue.add(() => downloadTile(address, etag));
-  } catch (error) {
-    const {code} = error;
-    const shouldRetry =
-      !etag &&
-      (code === 'ECONNRESET' ||
-        code === 'ECONNREFUSED' ||
-        code === 'ETIMEDOUT' ||
-        code === 503);
-    if (shouldRetry && retry < 15) {
-      const timeout = 1000 * Math.min(2 ** retry, 60);
-      await setTimeoutAsync(timeout);
-      logger.warn(
-        `Retrying ${address}, after waiting ${timeout}ms, ${retry} attempt`,
-      );
-      return addDownload(address, etag, retry + 1);
-    } else {
-      logger.error(`Failed downloading ${address}, code: ${code}`, error);
-      throw error;
-    }
-  }
-}
-
-function ensurePath(fileName) {
-  const path = dirname(fileName);
-  if (existsSync(path)) {
-    return existsSync(fileName);
-  } else {
-    mkdirSync(path);
-  }
-}
-
-async function overpassQuery(query) {
-  const body = `[out:json][timeout:25];${query}`;
-  const result = await fetch('http://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    body,
-  });
-  if (!result.ok) {
-    throw new Error(result.status);
-  }
-
-  return result.json();
-}
-
-async function zip(fileName, copyright, type) {
-  const zip = new JSZip();
-  const {dir, base, name} = parse(fileName);
-  const data = readFileSync(fileName);
-  zip.file(base, data);
-  zip.file('copyright.txt', copyright);
-  let done = 0;
-  const content = await zip.generateAsync(
-    {
-      type: 'nodebuffer',
-      compression: 'DEFLATE',
-      compressionOptions: {
-        level: 9,
-      },
-      comment: copyright,
-    },
-    ({percent}) => {
-      percent = +percent.toFixed(0);
-      if (percent > done) {
-        done = percent;
-        logger.verbose(`Zip progression: ${percent} %`);
-      }
-    },
-  );
-  const zipFileName = format({dir, name: `${name} - ${type}`, ext: '.zip'});
-  writeFileSync(zipFileName, content);
-  unlinkSync(fileName);
-  return zipFileName;
-}
-
-module.exports = {
-  addDownload,
-  buildTileUrl,
-  coordinates2Tile,
-  coordinates2Tiles,
-  ensurePath,
-  extractCoordinates,
-  generateId,
-  overpassQuery,
-  zip,
-};
+import crypto from 'crypto';import {  existsSync,  mkdirSync,  readFileSync,  unlinkSync,  writeFileSync,} from 'fs';import {dirname, format, parse} from 'path';import {promisify} from 'util';import fetch from 'node-fetch';import PQueue from 'p-queue';import JSZip from 'jszip';import LatLon from 'geodesy/latlon-ellipsoidal-vincenty.js';import DownloadError from './DownloadError.js';import {getLogger} from './logging.js';import Tile from './Tile.js';const logger = getLogger('utils/index.js');const queue = new PQueue.default({concurrency: 10});const setTimeoutAsync = promisify(setTimeout);export function* extractCoordinates(json) {  const {type, coordinates} = json;  switch (type) {    case 'Point':      return yield coordinates;    case 'MultiPoint':    case 'LineString':      return yield* coordinates;    case 'MultiLineString':    case 'Polygon':      for (const c of coordinates) {        yield* c;      }      return undefined;    case 'MultiPolygon':      for (const outer of coordinates) {        for (const inner of outer) {          yield* inner;        }      }      return undefined;    case 'GeometryCollection': {      const {geometries} = json;      for (const geometry of geometries) {        yield* extractCoordinates(geometry);      }      return undefined;    }    case 'Feature': {      const {geometry} = json;      return yield* extractCoordinates(geometry);    }    case 'FeatureCollection': {      const {features} = json;      for (const feature of features) {        yield* extractCoordinates(feature);      }    }  }}export function generateId(...strings) {  const data = strings.join();  return crypto    .createHash('md5')    .update(data)    .digest('hex');}function long2tile(lon, zoom) {  return Math.floor(((lon + 180) / 360) * Math.pow(2, zoom));}function lat2tile(lat, zoom) {  return Math.floor(    ((1 -      Math.log(        Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180),      ) /        Math.PI) /      2) *      Math.pow(2, zoom),  );}export function coordinates2Tile([lon, lat], zoom) {  const x = long2tile(lon, zoom);  const y = lat2tile(lat, zoom);  return new Tile(x, y, zoom);}export function* coordinates2Tiles([lon, lat], zoom, buffer = 1000) {  const center = new LatLon(lat, lon);  const nw = center.destinationPoint(buffer, 315);  const nwX = long2tile(nw.lon, zoom);  const nwY = lat2tile(nw.lat, zoom);  const se = center.destinationPoint(buffer, 135);  const seX = long2tile(se.lon, zoom);  const seY = lat2tile(se.lat, zoom);  for (let x = nwX; x <= seX; x += 1) {    for (let y = nwY; y <= seY; y += 1) {      yield new Tile(x, y, zoom);    }  }}let counter = -1;export function buildTileUrl(addressTemplate, tile) {  return addressTemplate    .replace(/{x}/, tile.x)    .replace(/{y}/, tile.y)    .replace(/{zoom}|{z}/, tile.zoom)    .replace(/\[(.*)]/, (match, subDomains) => {      counter = (counter + 1) % subDomains.length;      return subDomains[counter];    });}async function downloadTile(address, etag) {  const options = {    headers: {},  };  if (etag) {    options.headers['If-None-Match'] = etag;  }  const response = await fetch(address, options);  etag = response.headers.get('etag');  const lastCheck = response.headers.get('date');  if (response.status === 304) {    logger.verbose(`etag matched, skipped getting data, address: ${address}`);    return {lastCheck, etag};  }  if (!response.ok) {    throw new DownloadError(response.status, response.statusText);  }  const data = await response.buffer();  return {data, lastCheck, etag};}export async function addDownload(address, etag, retry = 0) {  try {    return await queue.add(() => downloadTile(address, etag));  } catch (error) {    const {code} = error;    const shouldRetry =      !etag &&      (code === 'ECONNRESET' ||        code === 'ECONNREFUSED' ||        code === 'ETIMEDOUT' ||        code === 503);    if (shouldRetry && retry < 15) {      const timeout = 1000 * Math.min(2 ** retry, 60);      await setTimeoutAsync(timeout);      logger.warn(        `Retrying ${address}, after waiting ${timeout}ms, ${retry} attempt`,      );      return addDownload(address, etag, retry + 1);    } else {      logger.error(`Failed downloading ${address}, code: ${code}`, error);      throw error;    }  }}export function ensurePath(fileName) {  const path = dirname(fileName);  if (existsSync(path)) {    return existsSync(fileName);  } else {    mkdirSync(path);  }}export async function overpassQuery(query) {  const body = `[out:json][timeout:25];${query}`;  const result = await fetch('http://overpass-api.de/api/interpreter', {    method: 'POST',    body,  });  if (!result.ok) {    throw new Error(result.status);  }  return result.json();}export async function zip(fileName, copyright, type) {  const zip = new JSZip();  const {dir, base, name} = parse(fileName);  const data = readFileSync(fileName);  zip.file(base, data);  zip.file('copyright.txt', copyright);  let done = 0;  const content = await zip.generateAsync(    {      type: 'nodebuffer',      compression: 'DEFLATE',      compressionOptions: {        level: 9,      },      comment: copyright,    },    ({percent}) => {      percent = +percent.toFixed(0);      if (percent > done) {        done = percent;        logger.verbose(`Zip progression: ${percent} %`);      }    },  );  const zipFileName = format({dir, name: `${name} - ${type}`, ext: '.zip'});  writeFileSync(zipFileName, content);  unlinkSync(fileName);  return zipFileName;}

@@ -1,6 +1,5 @@
-const {getLogger} = require('./utils/logging');
-const {coordinates2Tiles, extractCoordinates, generateId} = require('./utils');
-
+import {getLogger} from './utils/logging.js';
+import {coordinates2Tiles, extractCoordinates, generateId} from './utils/index.js';
 const logger = getLogger('downloadJob');
 
 function* extractUniqueTileDefinitions(json, minZoom, maxZoom) {
@@ -33,7 +32,7 @@ class Counters {
   }
 
   get percent() {
-    return Math.floor(100 * this.completed / this._total);
+    return Math.floor((100 * this.completed) / this._total);
   }
 
   get estimate() {
@@ -53,12 +52,10 @@ class Counters {
   }
 
   toString() {
-    return `Done ${this.percent}% ${this._done}/${this._total} [${
-      this._failed
-    } failed]`;
+    return `Done ${this.percent}% ${this._done}/${this._total} [${this._failed} failed]`;
   }
 }
-class DownloadJob {
+export default class DownloadJob {
   constructor(routeSource, tileSource, packager, minZoom, maxZoom) {
     this.id = generateId(
       routeSource.id,
@@ -146,5 +143,3 @@ class DownloadJob {
     }
   }
 }
-
-module.exports = DownloadJob;

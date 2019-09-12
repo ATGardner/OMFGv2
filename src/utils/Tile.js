@@ -1,4 +1,4 @@
-class Tile {
+export default class Tile {
   constructor(x, y, zoom) {
     this._x = x;
     this._y = y;
@@ -25,5 +25,3 @@ class Tile {
     return `${this._x}-${this._y}-${this._zoom}`;
   }
 }
-
-module.exports = Tile;

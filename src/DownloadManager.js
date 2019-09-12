@@ -1,10 +1,9 @@
-const {extname, basename, join} = require('path');
-const {getLogger} = require('./utils/logging');
-const {getPackager} = require('./packagers');
-const {getRouteSource} = require('./routeSources');
-const {getTileSource} = require('./tileSources');
-const DownloadJob = require('./DownloadJob');
-
+import {basename, extname, join} from 'path';
+import {getLogger} from './utils/logging.js';
+import {getPackager} from './packagers/index.js';
+import {getRouteSource} from './routeSources/index.js';
+import {getTileSource} from './tileSources/index.js';
+import DownloadJob from './DownloadJob.js';
 const logger = getLogger('downloadManager');
 
 function generateOutputFile([firstInput], sourceName, minZoom, maxZoom) {
@@ -95,5 +94,4 @@ class DownloadManager {
     return job.id;
   }
 }
-
-module.exports = new DownloadManager();
+export default new DownloadManager();

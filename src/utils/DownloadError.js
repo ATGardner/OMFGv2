@@ -1,4 +1,4 @@
-class DownloadError extends Error {
+export default class DownloadError extends Error {
   constructor(code = 0, ...params) {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
     super(...params);
@@ -11,5 +11,3 @@ class DownloadError extends Error {
     this.code = code;
   }
 }
-
-module.exports = DownloadError;

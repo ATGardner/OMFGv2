@@ -1,4 +1,4 @@
-class BCNavPackager {
+export default class MultiPackager {
   constructor(fileName, ...Packagers) {
     this.packagers = Packagers.map(P => new P(fileName));
   }
@@ -29,5 +29,3 @@ class BCNavPackager {
     return Promise.all(this.packagers.map(p => p.close(...args)));
   }
 }
-
-module.exports = BCNavPackager;

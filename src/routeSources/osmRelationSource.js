@@ -1,7 +1,6 @@
-const osmtogeojson = require('osmtogeojson');
-const {overpassQuery} = require('../utils');
-
-class OSMRelationSource {
+import osmtogeojson from 'osmtogeojson';
+import {overpassQuery} from '../utils/index.js';
+export default class OSMRelationSource {
   constructor(relationId) {
     this.relationId = relationId;
     this.routeAttribution = `https://hiking.waymarkedtrails.org/#route?id=${relationId}`;
@@ -22,5 +21,3 @@ class OSMRelationSource {
     return this.relationId;
   }
 }
-
-module.exports = OSMRelationSource;

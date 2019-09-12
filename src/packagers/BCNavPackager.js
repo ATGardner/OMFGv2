@@ -1,7 +1,6 @@
-const {format} = require('path');
-const DatabasePackager = require('./DatabasePackager');
-
-class BCNavPackager extends DatabasePackager {
+import {format} from 'path';
+import DatabasePackager from './DatabasePackager.js';
+export default class BCNavPackager extends DatabasePackager {
   constructor(fileName) {
     super(format({name: fileName, ext: '.sqlitedb'}));
   }
@@ -62,5 +61,3 @@ class BCNavPackager extends DatabasePackager {
     return super.close('BCNav', ...args);
   }
 }
-
-module.exports = BCNavPackager;

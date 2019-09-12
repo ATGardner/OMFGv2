@@ -1,83 +1,1 @@
-const {basename, extname, format} = require('path');
-const DatabasePackager = require('./DatabasePackager');
-
-class MBTilesPackager extends DatabasePackager {
-  constructor(fileName) {
-    super(format({name: fileName, ext: '.mbtiles'}));
-  }
-
-  get id() {
-    return `MBTiles_${super.id}`;
-  }
-
-  async init(source) {
-    await super.init(source);
-    await this.db.run(
-      'CREATE TABLE IF NOT EXISTS tiles (tile_column integer, tile_row integer, zoom_level integer, tile_data blob, PRIMARY KEY (tile_column, tile_row, zoom_level));',
-    );
-    await this.db.run(
-      'CREATE INDEX IF NOT EXISTS IND on tiles (tile_column, tile_row, zoom_level);',
-    );
-    await this.db.run(
-      'CREATE TABLE IF NOT EXISTS metadata (name text, value text, PRIMARY KEY (name));',
-    );
-    this.metadataStatement = await this.db.prepare(
-      'INSERT or REPLACE INTO metadata(name, value) VALUES($name, $value);',
-    );
-    this.insertStatement = await this.db.prepare(
-      'INSERT or REPLACE INTO tiles (tile_column, tile_row, zoom_level, tile_data) VALUES ($tile_column, $tile_row, $zoom_level, $tile_data);',
-    );
-    this.selectStatement = await this.db.prepare(
-      'SELECT COUNT(*) AS result FROM tiles WHERE tile_column = $tile_column AND tile_row = $tile_row and zoom_level = $zoom_level;',
-    );
-    const name = basename(this.fileName);
-    await this.setMetadata('name', name);
-    await this.setMetadata('type', 'baselayer');
-    await this.setMetadata('version', 1);
-    await this.setMetadata('description', name);
-    const format = extname(source.Address).substr(1);
-    await this.setMetadata('format', format);
-    await this.setMetadata('attribution', source.attribution);
-    await this.setMetadata('locale', 'en-US');
-  }
-
-  async hasTile({x, y, zoom}) {
-    if (this.newFile) {
-      return false;
-    }
-
-    const $tile_row = (1 << zoom) - y - 1;
-    const {result} = await this.selectStatement.get({
-      $tile_column: x,
-      $tile_row,
-      $zoom_level: zoom,
-    });
-    return result === 1;
-  }
-
-  addTile({x, y, zoom}, $tile_data) {
-    const $tile_row = (1 << zoom) - y - 1;
-    return this.insertStatement.run({
-      $tile_column: x,
-      $tile_row,
-      $zoom_level: zoom,
-      $tile_data,
-    });
-  }
-
-  setMetadata($name, $value) {
-    return this.metadataStatement.run({
-      $name,
-      $value,
-    });
-  }
-
-  async close(...args) {
-    await this.insertStatement.finalize();
-    await this.selectStatement.finalize();
-    await this.metadataStatement.finalize();
-    return super.close('Orux', ...args);
-  }
-}
-
-module.exports = MBTilesPackager;
+import {basename, extname, format} from 'path';import DatabasePackager from './DatabasePackager.js';export default class MBTilesPackager extends DatabasePackager {  constructor(fileName) {    super(format({name: fileName, ext: '.mbtiles'}));  }  get id() {    return `MBTiles_${super.id}`;  }  async init(source) {    await super.init(source);    await this.db.run(      'CREATE TABLE IF NOT EXISTS tiles (tile_column integer, tile_row integer, zoom_level integer, tile_data blob, PRIMARY KEY (tile_column, tile_row, zoom_level));',    );    await this.db.run(      'CREATE INDEX IF NOT EXISTS IND on tiles (tile_column, tile_row, zoom_level);',    );    await this.db.run(      'CREATE TABLE IF NOT EXISTS metadata (name text, value text, PRIMARY KEY (name));',    );    this.metadataStatement = await this.db.prepare(      'INSERT or REPLACE INTO metadata(name, value) VALUES($name, $value);',    );    this.insertStatement = await this.db.prepare(      'INSERT or REPLACE INTO tiles (tile_column, tile_row, zoom_level, tile_data) VALUES ($tile_column, $tile_row, $zoom_level, $tile_data);',    );    this.selectStatement = await this.db.prepare(      'SELECT COUNT(*) AS result FROM tiles WHERE tile_column = $tile_column AND tile_row = $tile_row and zoom_level = $zoom_level;',    );    const name = basename(this.fileName);    await this.setMetadata('name', name);    await this.setMetadata('type', 'baselayer');    await this.setMetadata('version', 1);    await this.setMetadata('description', name);    const format = extname(source.Address).substr(1);    await this.setMetadata('format', format);    await this.setMetadata('attribution', source.attribution);    await this.setMetadata('locale', 'en-US');  }  async hasTile({x, y, zoom}) {    if (this.newFile) {      return false;    }    const $tile_row = (1 << zoom) - y - 1;    const {result} = await this.selectStatement.get({      $tile_column: x,      $tile_row,      $zoom_level: zoom,    });    return result === 1;  }  addTile({x, y, zoom}, $tile_data) {    const $tile_row = (1 << zoom) - y - 1;    return this.insertStatement.run({      $tile_column: x,      $tile_row,      $zoom_level: zoom,      $tile_data,    });  }  setMetadata($name, $value) {    return this.metadataStatement.run({      $name,      $value,    });  }  async close(...args) {    await this.insertStatement.finalize();    await this.selectStatement.finalize();    await this.metadataStatement.finalize();    return super.close('Orux', ...args);  }}

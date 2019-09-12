@@ -1,7 +1,5 @@
-// const yargs = require('yargs');
-const parser = require('yargs/yargs');
-
-function getParser(processArgs) {
+import parser from 'yargs/yargs.js';
+export function getParser(processArgs) {
   return parser(processArgs)
     .usage('Usage: $0 [options]')
     .example(
@@ -88,5 +86,3 @@ function getParser(processArgs) {
     })
     .epilog('copyright 2017');
 }
-
-module.exports = getParser;
