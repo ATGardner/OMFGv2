@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "start-config": "node cli.js --config config.json",
+    "start": "node --experimental-json-modules index.js",
+    "start-config": "node --experimental-json-modules cli.js --config config.json",
     "test": "mocha test --recursive",
     "eslint-check": "eslint --print-config .eslintrc | eslint-config-prettier-check",
     "eslint-fix": "eslint --fix .eslintrc src/**/*.js --ignore-pattern node_modules/"
@@ -19,29 +19,29 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-string": "^1.5.0",
-    "eslint": "^6.3.0",
-    "eslint-config-google": "^0.13.0",
-    "eslint-config-prettier": "^6.1.0",
-    "eslint-plugin-prettier": "^3.1.0",
-    "mocha": "^6.2.0",
-    "prettier": "^1.18.2"
+    "eslint": "^6.8.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "mocha": "^7.0.0",
+    "prettier": "^1.19.1"
   },
   "dependencies": {
     "@mapbox/togeojson": "^0.16.0",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
-    "express-winston": "^3.3.0",
+    "express-winston": "^4.0.2",
     "geodesy": "^2.2.0",
-    "http-proxy-agent": "^2.1.0",
+    "http-proxy-agent": "^3.0.0",
     "jszip": "^3.2.2",
     "moment": "^2.24.0",
     "node-fetch": "^2.6.0",
     "osmtogeojson": "^3.0.0-beta.3",
-    "p-queue": "^6.1.1",
+    "p-queue": "^6.2.1",
     "png-to-jpeg": "^1.0.1",
-    "sqlite3": "^4.1.0",
+    "sqlite3": "^4.1.1",
     "winston": "^3.2.1",
-    "xmldom": "^0.1.27",
-    "yargs": "^14.0.0"
+    "xmldom": "^0.2.1",
+    "yargs": "^15.1.0"
   }
 }
