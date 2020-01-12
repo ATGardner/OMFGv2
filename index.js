@@ -6,7 +6,7 @@ import downloadManager from './src/DownloadManager.js';
 import {errorLogger, getLogger, requestLogger} from './src/utils/logging.js';
 const logger = getLogger('index');
 const app = express();
-app.use(json());
+app.use(express.json());
 app.use(requestLogger);
 app.post('/downloadTiles', async (req, res, next) => {
   try {
@@ -22,11 +22,6 @@ app.post('/downloadTiles', async (req, res, next) => {
 app.get('/queue/:id', async ({params: {id}}, res) => {
   const {code, status, result} = downloadManager.getJobStatus(id);
   res.status(code).send({status, result});
-});
-app.get('/blah', (req, res) => {
-  const result = new Date().toISOString();
-  logger.verbose('Got blah', result);
-  res.send(result);
 });
 app.use(errorLogger);
 // eslint-disable-next-line no-unused-vars

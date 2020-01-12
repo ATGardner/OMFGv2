@@ -1,4 +1,5 @@
 import winston from 'winston';
+import expressWinston from 'express-winston';
 const {format, loggers, transports} = winston;
 const {combine, timestamp, label, simple} = format;
 export function getLogger(name = 'omfg') {
@@ -8,3 +9,15 @@ export function getLogger(name = 'omfg') {
     transports: [new transports.Console()],
   });
 }
+
+export const requestLogger = expressWinston.logger({
+  transports: [new transports.Console()],
+  format: simple(),
+  meta: false,
+  expressFormat: true,
+  colorize: false,
+});
+export const errorLogger = expressWinston.errorLogger({
+  transports: [new transports.Console()],
+  format: simple(),
+});

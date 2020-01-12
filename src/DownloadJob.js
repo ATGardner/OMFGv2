@@ -1,5 +1,9 @@
 import {getLogger} from './utils/logging.js';
-import {coordinates2Tiles, extractCoordinates, generateId} from './utils/index.js';
+import {
+  coordinates2Tiles,
+  extractCoordinates,
+  generateId,
+} from './utils/index.js';
 const logger = getLogger('downloadJob');
 
 function* extractUniqueTileDefinitions(json, minZoom, maxZoom) {
