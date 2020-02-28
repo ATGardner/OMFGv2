@@ -16,13 +16,6 @@
     "node": true
   },
   "rules": {
-    "linebreak-stlye": "off",
-    "padding-line-between-statements": [
-      "error",
-      { "blankLine": "never", "prev": "*", "next": "*" },
-      { "blankLine": "always", "prev": ["block-like", "directive", "cjs-import"], "next": "*" },
-      { "blankLine": "never", "prev": "cjs-import", "next": "cjs-import" },
-      { "blankLine": "always", "prev": "*", "next": ["cjs-export", "function"]}
-    ]
+    "linebreak-stlye": "off"
   }
 }

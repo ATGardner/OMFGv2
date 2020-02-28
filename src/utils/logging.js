@@ -20,4 +20,7 @@ export const requestLogger = expressWinston.logger({
 export const errorLogger = expressWinston.errorLogger({
   transports: [new transports.Console()],
   format: simple(),
+  meta: false,
+  expressFormat: true,
+  colorize: false,
 });

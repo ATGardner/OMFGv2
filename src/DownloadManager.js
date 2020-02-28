@@ -9,7 +9,7 @@ const logger = getLogger('downloadManager');
 function generateOutputFile([firstInput], sourceName, minZoom, maxZoom) {
   const ext = extname(firstInput);
   const fileName = basename(firstInput, ext);
-  return join('output', `${fileName} - ${sourceName} - ${minZoom}-${maxZoom}`);
+  return `${fileName} - ${sourceName} - ${minZoom}-${maxZoom}`;
 }
 
 class DownloadManager {
@@ -61,12 +61,11 @@ class DownloadManager {
     inputFiles,
     routeAttribution,
     relationId,
-    sourceType,
+    sourceType = 'WMTS',
     sourceName,
-    sourceFile,
-    minZoom,
-    maxZoom,
-    outputType,
+    minZoom = 0,
+    maxZoom = 10,
+    outputType = 'Both',
     outputFile = generateOutputFile(
       inputFiles,
       sourceName || sourceType,
@@ -81,8 +80,8 @@ class DownloadManager {
     const routeSourceType = inputFiles ? 'localFile' : 'osmRelation';
     const data = inputFiles ? {inputFiles, routeAttribution} : relationId;
     const routeSource = getRouteSource(routeSourceType, data);
-    const tileSource = getTileSource(sourceType, sourceName || sourceFile);
-    const packager = getPackager(outputType, outputFile);
+    const tileSource = getTileSource(sourceType, sourceName);
+    const packager = getPackager(outputType, join('output', outputFile));
     const job = new DownloadJob(
       routeSource,
       tileSource,
