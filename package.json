@@ -24,7 +24,7 @@
     "eslint-config-prettier": "^6.9.0",
     "eslint-plugin-prettier": "^3.1.2",
     "mocha": "^8.1.0",
-    "prettier": "^1.19.1"
+    "prettier": "^2.0.5"
   },
   "dependencies": {
     "@mapbox/togeojson": "^0.16.0",
