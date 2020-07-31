@@ -69,6 +69,7 @@ class Counters {
 export default class DownloadJob {
   #id;
   #routeSource;
+  #tileSource;
   #packager;
   #minZoom;
   #maxZoom;
