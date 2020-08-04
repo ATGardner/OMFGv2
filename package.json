@@ -39,7 +39,7 @@
     "osmtogeojson": "^3.0.0-beta.3",
     "p-queue": "^6.2.1",
     "png-to-jpeg": "^1.0.1",
-    "sqlite3": "^4.1.1",
+    "sqlite3": "^5.0.0",
     "winston": "^3.2.1",
     "xmldom": "^0.3.0",
     "yargs": "^15.1.0"
