@@ -37,7 +37,7 @@
     "moment": "^2.24.0",
     "node-fetch": "^2.6.0",
     "osmtogeojson": "^3.0.0-beta.3",
-    "p-queue": "^6.2.1",
+    "p-queue": "^7.0.0",
     "png-to-jpeg": "^1.0.1",
     "sqlite3": "^5.0.0",
     "winston": "^3.2.1",
