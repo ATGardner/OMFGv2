@@ -14,7 +14,7 @@
   "license": "ISC",
   "type": "module",
   "engines": {
-    "node": "9.x"
+    "node": "^18.x"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -27,7 +27,8 @@
     "prettier": "^2.0.5"
   },
   "dependencies": {
-    "@mapbox/togeojson": "^0.16.0",
+    "@mapbox/togeojson": "github:ATGardner/togeojson",
+    "@xmldom/xmldom": "^0.8.2",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
     "express-winston": "^4.0.2",
@@ -36,12 +37,11 @@
     "jszip": "^3.2.2",
     "moment": "^2.24.0",
     "node-fetch": "^3.0.0",
-    "osmtogeojson": "^3.0.0-beta.3",
+    "osmtogeojson": "github:ATGardner/osmtogeojson",
     "p-queue": "^7.0.0",
-    "png-to-jpeg": "^1.0.1",
+    "png-to-jpeg": "github:ATGardner/png-to-jpeg",
     "sqlite3": "^5.0.0",
     "winston": "^3.2.1",
-    "xmldom": "^0.6.0",
     "yargs": "^17.0.1"
   }
 }
