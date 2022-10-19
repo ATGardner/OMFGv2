@@ -37,7 +37,7 @@
     "jszip": "^3.2.2",
     "moment": "^2.24.0",
     "node-fetch": "^3.0.0",
-    "osmtogeojson": "github:ATGardner/osmtogeojson",
+    "osmtogeojson": "^3.0.0-beta.5",
     "p-queue": "^7.0.0",
     "png-to-jpeg": "github:ATGardner/png-to-jpeg",
     "sqlite3": "^5.0.0",
