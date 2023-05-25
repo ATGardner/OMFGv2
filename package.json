@@ -33,7 +33,7 @@
     "express": "^4.17.1",
     "express-winston": "^4.0.2",
     "geodesy": "^2.2.0",
-    "http-proxy-agent": "^6.0.1",
+    "http-proxy-agent": "^7.0.0",
     "jszip": "^3.2.2",
     "moment": "^2.24.0",
     "node-fetch": "^3.0.0",
