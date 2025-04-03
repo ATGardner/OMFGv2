@@ -29,7 +29,7 @@
   "dependencies": {
     "@mapbox/togeojson": "github:ATGardner/togeojson",
     "@xmldom/xmldom": "^0.9.0",
-    "body-parser": "^1.19.0",
+    "body-parser": "^2.2.0",
     "express": "^5.0.0",
     "express-winston": "^4.0.2",
     "geodesy": "^2.2.0",
