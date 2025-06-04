@@ -42,6 +42,6 @@
     "png-to-jpeg": "github:ATGardner/png-to-jpeg",
     "sqlite3": "^5.0.0",
     "winston": "^3.2.1",
-    "yargs": "^17.0.1"
+    "yargs": "^18.0.0"
   }
 }
