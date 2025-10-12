@@ -38,7 +38,7 @@
     "moment": "^2.24.0",
     "node-fetch": "^3.0.0",
     "osmtogeojson": "^3.0.0-beta.5",
-    "p-queue": "^8.0.0",
+    "p-queue": "^9.0.0",
     "png-to-jpeg": "github:ATGardner/png-to-jpeg",
     "sqlite3": "^5.0.0",
     "winston": "^3.2.1",
