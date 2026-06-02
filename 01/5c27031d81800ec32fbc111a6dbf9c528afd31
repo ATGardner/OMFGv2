@@ -1,0 +1,20 @@
+renovate.json
+  s_2d94040b75c382::t_591425caedf07b 1-23,30-32
+  s_2d94040b75c382::t_08006f77dc053d 24-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "015c27031d81800ec32fbc111a6dbf9c528afd31",
+  "prompts": {},
+  "sessions": {
+    "s_2d94040b75c382": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "779e3dd4-0370-48ed-842a-9a8920393220",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "Noam Gal <noam.gal@octopus.com>"
+    }
+  }
+}
