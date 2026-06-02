@@ -1,0 +1,19 @@
+renovate.json
+  s_63b474f1227913::t_2234205962b38f 26-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "70dd5ed0b9b8f8f900f3c208bc8a9a17c663affa",
+  "prompts": {},
+  "sessions": {
+    "s_63b474f1227913": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7d18b17-882c-4c28-aaca-0dd7ab1bf245",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Noam Gal <noam.gal@octopus.com>"
+    }
+  }
+}
