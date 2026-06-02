@@ -23,6 +23,13 @@
       "groupName": "github actions"
     },
     {
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "groupName": "dev dependencies",
+      "automerge": true
+    },
+    {
       "matchDepTypes": ["engines"],
       "matchPackageNames": ["node"],
       "matchUpdateTypes": ["major"],
