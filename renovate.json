@@ -10,6 +10,7 @@
     "enabled": true
   },
   "prHourlyLimit": 0,
+  "rangeStrategy": "bump",
   "minimumReleaseAge": "3 days",
   "minimumReleaseAgeBehaviour": "timestamp-optional",
   "rebaseWhen": "behind-base-branch",
