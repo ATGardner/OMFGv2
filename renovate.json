@@ -29,11 +29,20 @@
       "pinDigests": true
     },
     {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "digest",
+        "pinDigest"
+      ],
+      "automerge": true
+    },
+    {
       "matchDepTypes": [
         "devDependencies"
       ],
-      "groupName": "dev dependencies",
-      "automerge": true
+      "groupName": "dev dependencies"
     },
     {
       "matchDepTypes": ["engines"],
