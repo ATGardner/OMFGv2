@@ -33,7 +33,6 @@
         "devDependencies"
       ],
       "groupName": "dev dependencies",
-      "groupSlug": "dev-dependencies",
       "automerge": true
     },
     {
