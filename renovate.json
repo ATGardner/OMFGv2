@@ -1,7 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "config:best-practices is config:recommended plus docker:pinDigests, helpers:pinGitHubActionDigests, :pinDevDependencies, :configMigration, abandonments:recommended and security:minimumReleaseAgeNpm.",
+    "helpers:pinGitHubActionDigestsToSemver stays after it, so the `# v1.2.3` comment beside a pinned action digest is a semver tag rather than the raw ref."
+  ],
   "extends": [
-    "config:recommended",
+    "config:best-practices",
     "helpers:pinGitHubActionDigestsToSemver",
     ":prHourlyLimitNone"
   ],
@@ -29,10 +33,16 @@
       "pinDigests": true
     },
     {
+      "description": [
+        "Every devDependency update in one PR: no matchUpdateTypes, so majors and the pins :pinDevDependencies introduces land in the same branch as the minors and patches.",
+        "Last among the rules that can set a group, so it wins over the monorepo and grouping presets config:recommended brings in — those would otherwise pull eslint, prettier and typescript-eslint into groups of their own.",
+        "groupSlug is spelled out rather than derived, because a groupName inherited from one of those presets would name the branch even when this rule sets its own."
+      ],
       "matchDepTypes": [
         "devDependencies"
       ],
       "groupName": "dev dependencies",
+      "groupSlug": "dev-dependencies",
       "automerge": true
     },
     {
