@@ -19,10 +19,16 @@ export default class FSSource implements TileSource {
   }
 
   /*
-   * Split out from `getTileData` for `MaperitiveSource`, which reads the disk
-   * twice around an await and so cannot go through its own async override.
+   * Synchronous, and typed as such: reading a tile off the local disk has
+   * nothing to await. The interface allows a promise for the sources that
+   * fetch over the network, and `DownloadJob` awaits the result either way.
+   *
+   * This used to delegate to a `protected readTile`, split out for
+   * `MaperitiveSource` — which read the disk twice around an await and so
+   * could not go through its own async override. That source is gone, and
+   * with it the only caller of the seam.
    */
-  protected readTile(tile: Tile): Buffer | undefined {
+  getTileData(tile: Tile): Uint8Array | undefined {
     const path = join(
       this.basePath,
       `${tile.zoom}`,
@@ -30,11 +36,5 @@ export default class FSSource implements TileSource {
       `${tile.y}.png`,
     );
     return existsSync(path) ? readFileSync(path) : undefined;
-  }
-
-  getTileData(
-    tile: Tile,
-  ): Uint8Array | undefined | Promise<Uint8Array | undefined> {
-    return this.readTile(tile);
   }
 }

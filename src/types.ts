@@ -30,8 +30,8 @@ export interface TileSource {
   /*
    * `Address` and `attribution` come from sources.json and so only exist on
    * the WMTS sources. `MBTilesPackager` writes both into its metadata table
-   * and has always had to cope with their absence for the FS/MB/Maperitive
-   * sources — now the type says so.
+   * and has always had to cope with their absence for the FS and MB sources —
+   * now the type says so.
    */
   readonly Address?: string;
 
@@ -42,13 +42,6 @@ export interface TileSource {
   getTileData(
     tile: Tile,
   ): Uint8Array | undefined | Promise<Uint8Array | undefined>;
-
-  /*
-   * Maperitive only: it shells out to a Windows binary that renders every
-   * requested tile in one batch, so `getTileData` parks each caller until this
-   * runs. `DownloadJob` calls it if it is there.
-   */
-  generateAllTiles?(): void | Promise<void>;
 
   close?(): void | Promise<void>;
 }

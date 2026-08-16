@@ -1,7 +1,7 @@
 import parser from 'yargs/yargs';
 import type {DownloadRequest} from './src/DownloadManager.ts';
 
-export const sourceTypes = ['Maperitive', 'MB', 'FS', 'WMTS'] as const;
+export const sourceTypes = ['MB', 'FS', 'WMTS'] as const;
 export const outputTypes = ['MBTiles', 'BCNav', 'Both'] as const;
 
 /*
