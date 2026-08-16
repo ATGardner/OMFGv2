@@ -2,13 +2,15 @@
   "name": "omfg",
   "version": "2.0.1",
   "description": "",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
-    "start": "node --experimental-json-modules index.js",
-    "start-config": "node --experimental-json-modules cli.js --config config.json",
-    "test": "mocha test --recursive",
-    "eslint-check": "eslint --print-config .eslintrc | eslint-config-prettier-check",
-    "eslint-fix": "eslint --fix .eslintrc src/**/*.js --ignore-pattern node_modules/"
+    "start": "node index.ts",
+    "start-config": "node cli.ts --config config.json",
+    "test": "mocha",
+    "typecheck": "tsc --noEmit",
+    "typecheck:6": "tsc6 --noEmit",
+    "lint": "eslint --fix .",
+    "lint:ci": "eslint ."
   },
   "author": "Noam (\"Amtrak\") Gal",
   "license": "ISC",
@@ -17,31 +19,46 @@
     "node": "^24.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/chai-string": "^1.4.5",
+    "@types/express": "^5.0.6",
+    "@types/geojson": "^7946.0.16",
+    "@types/jpeg-js": "^0.3.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.2.0",
+    "@types/yargs": "^17.0.35",
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript/native": "npm:typescript@~7.0.0",
     "chai": "^6.0.0",
     "chai-string": "^2.0.0",
-    "eslint": "^10.0.0",
-    "eslint-config-google": "^0.14.0",
-    "eslint-config-prettier": "^10.0.1",
-    "eslint-plugin-prettier": "^5.0.0",
+    "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import-x": "^4.17.1",
+    "eslint-plugin-prettier": "^5.5.6",
+    "globals": "^17.6.0",
     "mocha": "^11.0.1",
-    "prettier": "^3.0.0"
+    "prettier": "^3.8.3",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.67.0"
   },
   "dependencies": {
-    "@mapbox/togeojson": "github:ATGardner/togeojson",
+    "@tmcw/togeojson": "^7.1.2",
     "@xmldom/xmldom": "^0.9.0",
-    "body-parser": "^2.2.0",
     "express": "^5.0.0",
     "express-winston": "^4.0.2",
     "geodesy": "^2.2.0",
-    "http-proxy-agent": "^9.0.0",
+    "jpeg-js": "^0.4.4",
     "jszip": "^3.2.2",
     "moment": "^2.24.0",
-    "node-fetch": "^3.0.0",
     "osmtogeojson": "^3.0.0-beta.5",
     "p-queue": "^9.0.0",
-    "png-to-jpeg": "github:ATGardner/png-to-jpeg",
+    "png-js": "^2.0.0",
     "sqlite3": "^6.0.1",
     "winston": "^3.2.1",
     "yargs": "^18.0.0"
+  },
+  "allowScripts": {
+    "sqlite3@6.0.1": true,
+    "unrs-resolver@1.12.2": true
   }
 }

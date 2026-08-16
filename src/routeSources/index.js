@@ -1,1 +1,0 @@
-import LocalFilesSource from './localFilesSource.js';import OsmRelationSource from './osmRelationSource.js';export function getRouteSource(sourceType, data) {  switch (sourceType) {    case 'localFile':      return new LocalFilesSource(data);    case 'osmRelation':      return new OsmRelationSource(data);  }}
