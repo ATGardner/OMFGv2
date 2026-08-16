@@ -37,7 +37,11 @@ app.get('/queue/:id', ({params: {id}}, res) => {
 
 app.get('/blah', (req, res) => {
   const result = new Date().toISOString();
-  logger.verbose('Got blah', result);
+  /*
+   * Same reason as the tile failure in DownloadJob: a trailing string argument
+   * is dropped by winston, so the timestamp only appears if it is the message.
+   */
+  logger.verbose(`Got blah ${result}`);
   res.send(result);
 });
 
