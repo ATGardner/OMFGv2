@@ -29,11 +29,6 @@
       "pinDigests": true
     },
     {
-      "description": [
-        "Every devDependency update in one PR: no matchUpdateTypes, so majors and the pins :pinDevDependencies introduces land in the same branch as the minors and patches.",
-        "Last among the rules that can set a group, so it wins over the monorepo and grouping presets config:recommended brings in — those would otherwise pull eslint, prettier and typescript-eslint into groups of their own.",
-        "groupSlug is spelled out rather than derived, because a groupName inherited from one of those presets would name the branch even when this rule sets its own."
-      ],
       "matchDepTypes": [
         "devDependencies"
       ],
