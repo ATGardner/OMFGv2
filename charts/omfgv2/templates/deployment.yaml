@@ -14,6 +14,11 @@ spec:
   upgrade deadlocks, the new pod Pending on a volume the outgoing pod still
   holds. Recreate takes the brief downtime instead, which for a single-replica
   batch downloader costs nothing.
+
+  The volume itself is untouched either way: the claim is named after the
+  release and neither an upgrade nor a pod restart re-provisions it, so the
+  tile cache survives both. Only `helm uninstall` removes it — see the
+  resource-policy note in values.yaml.
   */}}
   strategy:
     type: Recreate

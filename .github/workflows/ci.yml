@@ -103,10 +103,6 @@ jobs:
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
-          # The production image lives under docker/ alongside the compose
-          # files used for local development; there is no Dockerfile at the
-          # root for buildx to find by default.
-          file: docker/prod.dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

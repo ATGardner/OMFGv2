@@ -62,6 +62,7 @@ typings/
 # next.js build output
 .next
 
+# Runtime output. Both are written relative to the image's WORKDIR, and the
+# cache is what the chart mounts a volume over — neither belongs in a build.
 cache
 output
-docker
