@@ -1,0 +1,15 @@
+---
+apiVersion: v2
+name: omfgv2
+version: 0.1.0
+appVersion: "latest"
+description: Downloads map tiles along a GPX/KML route into offline MBTiles and BCNav packages
+home: https://github.com/ATGardner/OMFGv2
+sources:
+  - https://github.com/ATGardner/OMFGv2
+keywords:
+  - openstreetmap
+  - osm
+  - mbtiles
+  - offline-maps
+  - gis

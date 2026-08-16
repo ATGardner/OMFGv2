@@ -1,0 +1,98 @@
+---
+# The storageClass encoding is the trap here. "" and "-" mean opposite things
+# to Kubernetes — omitted takes the cluster default, empty string disables
+# dynamic provisioning — and both render as valid YAML, so a chart that mixes
+# them up installs cleanly and binds the wrong volume.
+suite: persistent volume claim
+templates:
+  - pvc.yaml
+release:
+  name: test-release
+tests:
+  - it: creates no claim by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: creates a claim when persistence is enabled
+    set:
+      persistence.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: PersistentVolumeClaim
+      - equal:
+          path: metadata.name
+          value: test-release-omfgv2
+      - equal:
+          path: spec.accessModes
+          value:
+            - ReadWriteOnce
+      - equal:
+          path: spec.resources.requests.storage
+          value: 5Gi
+
+  - it: omits storageClassName so the cluster default applies
+    set:
+      persistence.enabled: true
+    asserts:
+      - notExists:
+          path: spec.storageClassName
+
+  - it: names an explicit storage class
+    set:
+      persistence.enabled: true
+      persistence.storageClass: fast
+    asserts:
+      - equal:
+          path: spec.storageClassName
+          value: fast
+
+  - it: maps "-" to the empty string, disabling dynamic provisioning
+    set:
+      persistence.enabled: true
+      persistence.storageClass: "-"
+    asserts:
+      - equal:
+          path: spec.storageClassName
+          value: ""
+
+  # An existingClaim means the user manages the volume; provisioning one here
+  # too would leave an orphan PVC nothing mounts.
+  - it: provisions nothing when an existing claim is named
+    set:
+      persistence.enabled: true
+      persistence.existingClaim: my-cache
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: refuses a ReadWriteOnce claim with more than one replica
+    set:
+      persistence.enabled: true
+      replicaCount: 2
+    asserts:
+      - failedTemplate:
+          errorMessage: persistence.accessModes must include ReadWriteMany when replicaCount > 1
+
+  - it: allows more than one replica against ReadWriteMany
+    set:
+      persistence.enabled: true
+      replicaCount: 2
+      persistence.accessModes:
+        - ReadWriteMany
+    asserts:
+      - hasDocuments:
+          count: 1
+
+  # The guard is about what this chart provisions. An existingClaim's real
+  # access modes live on that object, so the values here say nothing.
+  - it: does not second-guess an existing claim's access modes
+    set:
+      persistence.enabled: true
+      persistence.existingClaim: my-cache
+      replicaCount: 2
+    asserts:
+      - hasDocuments:
+          count: 0

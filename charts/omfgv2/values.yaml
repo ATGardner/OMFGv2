@@ -1,0 +1,126 @@
+---
+# Deliberately not configurable upwards without thought. DownloadManager keeps
+# its job table in a plain in-memory Map and guards the queue with a
+# process-local `downloading` flag, so a second replica does not share either:
+# a client that POSTs /downloadTiles to one pod and then polls /queue/<id> gets
+# a 404 from the other, and the "one download at a time" limit becomes one per
+# pod. The cache PVC below is ReadWriteOnce on top of that.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/atgardner/omfgv2
+  pullPolicy: IfNotPresent
+  # Defaults to the chart's appVersion, which CI pins to the image tag that
+  # matches this chart version. Override only to pin a different image.
+  tag: ""
+
+# Secrets in the release namespace holding registry credentials. The GHCR
+# package is public, so this is only needed if you have made it private.
+imagePullSecrets: []
+#  - name: ghcr-pull-secret
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+
+service:
+  type: ClusterIP
+  port: 3000
+
+# Gateway API routing. Prefer this over `ingress` on clusters that have the
+# Gateway API CRDs installed; enabling both is allowed but rarely wanted.
+httpRoute:
+  enabled: false
+  annotations: {}
+  # Gateways to attach to. Required when enabled — a route with no parent is
+  # accepted by the API server and then silently routes nothing.
+  parentRefs: []
+  #  - name: my-gateway
+  #    namespace: gateway-system
+  #    sectionName: https
+  # Omit to serve on every hostname the parent listener accepts.
+  hostnames: []
+  #  - omfg.example.com
+  # Defaults to one rule sending every path to this chart's Service. Set this
+  # to take over routing entirely — matches, filters, timeouts — in which case
+  # you own the backendRefs too.
+  rules: []
+
+# Traditional Ingress, for clusters without the Gateway API.
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: omfg.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: omfgv2-tls
+  #    hosts:
+  #      - omfg.example.com
+
+# The app serves on 3000 and reads PORT from the environment.
+containerPort: 3000
+
+# The tile cache. Every tile the app downloads is written to a per-source
+# SQLite database under `cache/`, and re-used for a day before it is even
+# revalidated — so without a volume here, replacing the pod throws away the
+# work and re-downloads every tile from the upstream tile server on the next
+# job. That is the one piece of state worth keeping, and it is why this block
+# exists; it is off by default only because a chart should not provision
+# storage nobody asked for.
+persistence:
+  enabled: false
+  # Bind a PVC you manage yourself. Every provisioning field below is ignored
+  # when this is set, and the chart creates no PVC of its own.
+  existingClaim: ""
+  # "" omits storageClassName entirely, so the cluster's default class applies.
+  # A literal "-" sets it to the empty string, which disables dynamic
+  # provisioning and binds a PV you created by hand.
+  storageClass: ""
+  # ReadWriteOnce is right for a single replica. Raising replicaCount with a
+  # RWO claim leaves every pod after the first stuck in Pending, so the chart
+  # refuses that combination rather than letting it fail at schedule time.
+  accessModes:
+    - ReadWriteOnce
+  # Tiles are 5-15KB each and a job covers thousands of them across the zoom
+  # range, so this fills faster than a log volume would. Nothing prunes it.
+  size: 5Gi
+  annotations: {}
+  #  helm.sh/resource-policy: keep
+  # Must match where the app actually writes. Cache paths are built as a
+  # relative `cache/<source>` and the image's WORKDIR is /service, so this is
+  # /service/cache. Pointing it elsewhere mounts a volume nothing ever writes
+  # to, and the cache silently stays ephemeral.
+  mountPath: /service/cache
+
+# Empty by default, unlike the OSMExport chart this is modelled on. That image
+# creates an unprivileged user and so needs an fsGroup to make a freshly
+# provisioned volume writable; docker/prod.dockerfile here still runs as root,
+# which can already write a root-owned volume root. Set an fsGroup here the
+# moment that image grows a USER, or the cache mount becomes unwritable.
+podSecurityContext: {}
+
+resources: {}
+
+# `/blah` returns a timestamp and is the closest thing to a health endpoint,
+# but it is not one by contract, so both probes check the listening socket
+# instead. Note that a download job runs on the same event loop as these:
+# tile writes are synchronous SQLite calls, so keep the timeouts slack.
+livenessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 20
+readinessProbe:
+  tcpSocket:
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

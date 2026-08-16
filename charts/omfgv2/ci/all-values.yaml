@@ -1,0 +1,101 @@
+---
+# Every optional block set at once, for the kubeconform pass in CI. values.yaml
+# leaves most of these empty, so the default render never exercises the
+# `{{- with }}` branches at all and their field placement goes unchecked.
+#
+# The values are arbitrary. What matters is that each one is schema-valid, so
+# anything kubeconform rejects is the chart's fault and not this file's.
+replicaCount: 2
+
+image:
+  tag: main-abc1234
+  pullPolicy: Always
+
+imagePullSecrets:
+  - name: ghcr-pull-secret
+
+nameOverride: renamed
+
+podAnnotations:
+  team: maps
+
+podLabels:
+  tier: web
+
+service:
+  type: NodePort
+  port: 8080
+
+containerPort: 8080
+
+# Both at once. They are independent in the templates, and enabling both is the
+# only way one render reaches every object the chart can produce. The HTTPRoute
+# is the reason kubeconform needs a CRD schema source.
+httpRoute:
+  enabled: true
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: omfg.example.com
+  parentRefs:
+    - name: my-gateway
+      namespace: gateway-system
+      sectionName: https
+  hostnames:
+    - omfg.example.com
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: omfg.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: omfgv2-tls
+      hosts:
+        - omfg.example.com
+
+# ReadWriteMany because replicaCount is 2 above, which the chart refuses to
+# render against a ReadWriteOnce claim. Two replicas is not a supported way to
+# run this app — see the note in values.yaml — it is here to reach the RWX
+# branch and the Recreate-strategy block in one render.
+persistence:
+  enabled: true
+  storageClass: fast
+  accessModes:
+    - ReadWriteMany
+  size: 10Gi
+  annotations:
+    helm.sh/resource-policy: keep
+
+podSecurityContext:
+  fsGroup: 10001
+  runAsNonRoot: false
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations:
+  - key: spot
+    operator: Exists
+    effect: NoSchedule
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [a]
