@@ -4,14 +4,21 @@ import Database, {type Statement} from '../utils/sqlite3-async.ts';
 import type Tile from '../utils/Tile.ts';
 
 export interface CachedTile {
-  data: Buffer;
+  data: Uint8Array;
   lastCheck: Date;
   etag: string;
 }
 
 interface TileRow {
-  data: Buffer;
-  last_check: string;
+  data: Uint8Array;
+
+  /*
+   * Text in the normal path — `WMTSSource` stores the response's `Date`
+   * header verbatim — but a number when a Date was bound, which the wrapper
+   * writes as epoch milliseconds. `new Date` takes either.
+   */
+  last_check: string | number;
+
   etag: string;
 }
 
@@ -65,7 +72,7 @@ export default class Cache {
 
   addTile(
     tile: Tile,
-    data: Buffer | undefined,
+    data: Uint8Array | undefined,
     lastCheck: Date | string | null,
     etag?: string | null,
   ): Promise<void> {

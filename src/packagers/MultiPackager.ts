@@ -32,7 +32,7 @@ export default class MultiPackager implements Packager {
     return this.packagers[0].hasTile(tile);
   }
 
-  async addTile(tile: Tile, data: Buffer): Promise<void> {
+  async addTile(tile: Tile, data: Uint8Array): Promise<void> {
     await Promise.all(this.packagers.map((p) => p.addTile(tile, data)));
   }
 

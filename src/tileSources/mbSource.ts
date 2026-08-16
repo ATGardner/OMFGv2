@@ -1,11 +1,10 @@
 import {basename, extname} from 'path';
-import sqlite3 from 'sqlite3';
 import type {TileSource} from '../types.ts';
 import Database, {type Statement} from '../utils/sqlite3-async.ts';
 import type Tile from '../utils/Tile.ts';
 
 interface TileRow {
-  tile_data: Buffer;
+  tile_data: Uint8Array;
 }
 
 export default class MBSource implements TileSource {
@@ -16,7 +15,7 @@ export default class MBSource implements TileSource {
   private selectStatement!: Statement;
 
   constructor(fileName: string) {
-    this.db = new Database(fileName, sqlite3.OPEN_READONLY);
+    this.db = new Database(fileName, {readOnly: true});
     const ext = extname(fileName);
     this.Name = basename(fileName, ext);
   }
@@ -32,7 +31,7 @@ export default class MBSource implements TileSource {
     );
   }
 
-  async getTileData(tile: Tile): Promise<Buffer | undefined> {
+  async getTileData(tile: Tile): Promise<Uint8Array | undefined> {
     const $tile_row = (1 << tile.zoom) - tile.y - 1;
     const row = await this.selectStatement.get<TileRow>({
       $tile_column: tile.x,

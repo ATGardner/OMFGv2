@@ -39,7 +39,9 @@ export interface TileSource {
 
   init(): void | Promise<void>;
 
-  getTileData(tile: Tile): Buffer | undefined | Promise<Buffer | undefined>;
+  getTileData(
+    tile: Tile,
+  ): Uint8Array | undefined | Promise<Uint8Array | undefined>;
 
   /*
    * Maperitive only: it shells out to a Windows binary that renders every
@@ -64,7 +66,7 @@ export interface Packager {
 
   hasTile(tile: Tile): Promise<boolean>;
 
-  addTile(tile: Tile, data: Buffer): Promise<void>;
+  addTile(tile: Tile, data: Uint8Array): Promise<void>;
 
   /*
    * Resolves to the file written, or to one name per packager for

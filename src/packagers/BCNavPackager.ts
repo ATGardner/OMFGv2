@@ -51,7 +51,7 @@ export default class BCNavPackager extends DatabasePackager {
     return row?.result === 1;
   }
 
-  override addTile({x, y, zoom}: Tile, $image: Buffer): Promise<void> {
+  override addTile({x, y, zoom}: Tile, $image: Uint8Array): Promise<void> {
     const $z = 17 - zoom;
     return this.insertStatement.run({
       $x: x,

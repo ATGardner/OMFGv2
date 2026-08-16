@@ -44,7 +44,12 @@ describe('sqlite-async', () => {
       await db.init();
       throw new Error('Should have thrown an error');
     } catch (error) {
-      expect((error as Error).message).to.startWith('SQLITE_CANTOPEN');
+      /*
+       * Asserted on the code rather than the message: node:sqlite reports
+       * SQLite's own text ("unable to open database file") where the `sqlite3`
+       * package prefixed it with `SQLITE_CANTOPEN`.
+       */
+      expect(error).to.have.property('code', 'ERR_SQLITE_ERROR');
     }
   });
   it('runs a simple create table', async () => {

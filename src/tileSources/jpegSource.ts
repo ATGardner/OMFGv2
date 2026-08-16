@@ -24,7 +24,7 @@ export default class JPEGSource extends WMTSSource {
 
   async updateJpegCache(
     tile: Tile,
-    data: Buffer | undefined,
+    data: Uint8Array | undefined,
     lastCheck: string,
   ): Promise<void> {
     if (data) {
@@ -34,7 +34,7 @@ export default class JPEGSource extends WMTSSource {
     }
   }
 
-  override async getTileData(tile: Tile): Promise<Buffer | undefined> {
+  override async getTileData(tile: Tile): Promise<Uint8Array | undefined> {
     const {data: cachedData, lastCheck}: Partial<CachedTile> =
       (await this.jpegCache.getTile(tile)) ?? {};
     if (lastCheck && moment().subtract(1, 'day').isBefore(lastCheck)) {

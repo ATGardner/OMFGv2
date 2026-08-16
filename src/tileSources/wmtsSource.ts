@@ -38,7 +38,7 @@ export default class WMTSSource implements TileSource {
 
   async updateCache(
     tile: Tile,
-    data: Buffer | undefined,
+    data: Uint8Array | undefined,
     lastCheck: string | null,
     etag: string | null,
   ): Promise<void> {
@@ -49,7 +49,7 @@ export default class WMTSSource implements TileSource {
     }
   }
 
-  async getTileData(tile: Tile): Promise<Buffer | undefined> {
+  async getTileData(tile: Tile): Promise<Uint8Array | undefined> {
     const {
       data: cachedData,
       lastCheck,

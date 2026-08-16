@@ -46,7 +46,12 @@ export default class MBTilesPackager extends DatabasePackager {
     const name = basename(this.fileName);
     await this.setMetadata('name', name);
     await this.setMetadata('type', 'baselayer');
-    await this.setMetadata('version', 1);
+    /*
+     * A string, not `1`: node:sqlite binds a JS number as a double, and this
+     * column's TEXT affinity then renders it `"1.0"` where the `sqlite3`
+     * package — which bound integral numbers as integers — wrote `"1"`.
+     */
+    await this.setMetadata('version', '1');
     await this.setMetadata('description', name);
     /*
      * Only the WMTS sources carry an `Address` to read an extension off — an
@@ -75,7 +80,7 @@ export default class MBTilesPackager extends DatabasePackager {
     return row?.result === 1;
   }
 
-  override addTile({x, y, zoom}: Tile, $tile_data: Buffer): Promise<void> {
+  override addTile({x, y, zoom}: Tile, $tile_data: Uint8Array): Promise<void> {
     const $tile_row = (1 << zoom) - y - 1;
     return this.insertStatement.run({
       $tile_column: x,
@@ -85,7 +90,7 @@ export default class MBTilesPackager extends DatabasePackager {
     });
   }
 
-  setMetadata($name: string, $value?: string | number): Promise<void> {
+  setMetadata($name: string, $value?: string): Promise<void> {
     return this.metadataStatement.run({
       $name,
       $value,

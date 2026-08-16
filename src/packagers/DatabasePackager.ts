@@ -39,7 +39,7 @@ export default abstract class DatabasePackager implements Packager {
 
   abstract hasTile(tile: Tile): Promise<boolean>;
 
-  abstract addTile(tile: Tile, data: Buffer): Promise<void>;
+  abstract addTile(tile: Tile, data: Uint8Array): Promise<void>;
 
   /*
    * The subclasses own the public two-argument `close` and call this with the
