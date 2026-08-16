@@ -1,0 +1,43 @@
+---
+suite: service
+templates:
+  - service.yaml
+release:
+  name: test-release
+tests:
+  - it: exposes the http port by name
+    asserts:
+      - isKind:
+          of: Service
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports[0]
+          value:
+            port: 3000
+            targetPort: http
+            protocol: TCP
+            name: http
+
+  # targetPort stays the *name*, so changing the service port alone still
+  # reaches the container. Pinning both to numbers is how they drift.
+  - it: keeps targetPort symbolic when the service port changes
+    set:
+      service.port: 8080
+      containerPort: 9000
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 8080
+      - equal:
+          path: spec.ports[0].targetPort
+          value: http
+
+  - it: selects the pods this release created
+    asserts:
+      - equal:
+          path: spec.selector
+          value:
+            app.kubernetes.io/name: omfgv2
+            app.kubernetes.io/instance: test-release

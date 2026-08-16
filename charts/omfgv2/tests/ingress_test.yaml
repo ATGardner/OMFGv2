@@ -1,0 +1,86 @@
+---
+suite: ingress
+templates:
+  - ingress.yaml
+release:
+  name: test-release
+tests:
+  - it: renders nothing by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: routes to this chart's service on the service port
+    set:
+      ingress.enabled: true
+    asserts:
+      - isKind:
+          of: Ingress
+      - equal:
+          path: spec.rules[0].host
+          value: omfg.example.com
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service
+          value:
+            name: test-release-omfgv2
+            port:
+              number: 3000
+
+  - it: follows the service port rather than the container port
+    set:
+      ingress.enabled: true
+      service.port: 8080
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].backend.service.port.number
+          value: 8080
+
+  - it: sets the class and TLS when given
+    set:
+      ingress.enabled: true
+      ingress.className: nginx
+      ingress.tls:
+        - secretName: omfgv2-tls
+          hosts:
+            - omfg.example.com
+    asserts:
+      - equal:
+          path: spec.ingressClassName
+          value: nginx
+      - equal:
+          path: spec.tls[0].secretName
+          value: omfgv2-tls
+
+  - it: omits the class so the cluster default applies
+    set:
+      ingress.enabled: true
+    asserts:
+      - notExists:
+          path: spec.ingressClassName
+
+  # A rule with no host matches any hostname — reaching the cluster by IP, say.
+  # `host: ""` would be rejected by the API server, so the key has to vanish.
+  - it: drops the host key entirely for a hostless rule
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - paths:
+            - path: /
+              pathType: Prefix
+    asserts:
+      - notExists:
+          path: spec.rules[0].host
+      - exists:
+          path: spec.rules[0].http.paths[0]
+
+  - it: defaults pathType to Prefix
+    set:
+      ingress.enabled: true
+      ingress.hosts:
+        - host: omfg.example.com
+          paths:
+            - path: /
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Prefix

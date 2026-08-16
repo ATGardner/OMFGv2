@@ -1,0 +1,77 @@
+---
+suite: http route
+templates:
+  - httproute.yaml
+release:
+  name: test-release
+tests:
+  - it: renders nothing by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: sends every path to this chart's service
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: my-gateway
+    asserts:
+      - isKind:
+          of: HTTPRoute
+      - equal:
+          path: spec.parentRefs[0].name
+          value: my-gateway
+      - equal:
+          path: spec.rules[0]
+          value:
+            matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - name: test-release-omfgv2
+                port: 3000
+
+  - it: omits hostnames so the listener's own set applies
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: my-gateway
+    asserts:
+      - notExists:
+          path: spec.hostnames
+
+  - it: sets hostnames when given
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: my-gateway
+      httpRoute.hostnames:
+        - omfg.example.com
+    asserts:
+      - equal:
+          path: spec.hostnames[0]
+          value: omfg.example.com
+
+  # Custom rules replace the default entirely, backendRefs included — the
+  # caller owns routing at that point.
+  - it: hands routing over when rules are supplied
+    set:
+      httpRoute.enabled: true
+      httpRoute.parentRefs:
+        - name: my-gateway
+      httpRoute.rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /queue
+          backendRefs:
+            - name: somewhere-else
+              port: 9000
+    asserts:
+      - lengthEqual:
+          path: spec.rules
+          count: 1
+      - equal:
+          path: spec.rules[0].backendRefs[0].name
+          value: somewhere-else

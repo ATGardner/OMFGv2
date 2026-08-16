@@ -1,0 +1,58 @@
+---
+# The fullname helper has a collapse rule that surprises people: when the
+# release name already contains the chart name, it is used alone rather than
+# doubled up. Every object in the chart is named through it, so a change here
+# silently renames the Service the Ingress and HTTPRoute point at.
+suite: naming
+templates:
+  - deployment.yaml
+release:
+  name: test-release
+tests:
+  - it: joins release and chart name
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-release-omfgv2
+
+  - it: collapses when the release name already contains the chart name
+    release:
+      name: omfgv2
+    asserts:
+      - equal:
+          path: metadata.name
+          value: omfgv2
+
+  - it: honours nameOverride
+    set:
+      nameOverride: renamed
+    asserts:
+      - equal:
+          path: metadata.name
+          value: test-release-renamed
+      - equal:
+          path: spec.selector.matchLabels["app.kubernetes.io/name"]
+          value: renamed
+
+  - it: honours fullnameOverride
+    set:
+      fullnameOverride: something-else
+    asserts:
+      - equal:
+          path: metadata.name
+          value: something-else
+
+  - it: carries the standard labels
+    chart:
+      version: 1.2.3
+      appVersion: v9.9.9
+    asserts:
+      - equal:
+          path: metadata.labels["helm.sh/chart"]
+          value: omfgv2-1.2.3
+      - equal:
+          path: metadata.labels["app.kubernetes.io/version"]
+          value: v9.9.9
+      - equal:
+          path: metadata.labels["app.kubernetes.io/managed-by"]
+          value: Helm

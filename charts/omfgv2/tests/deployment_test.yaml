@@ -1,0 +1,120 @@
+---
+# The cache mount is the point of this chart, and every way of getting it wrong
+# still renders valid YAML: a volume with no mount, a mount at a path the app
+# never writes to, or a rolling update that deadlocks on the volume.
+suite: deployment
+templates:
+  - deployment.yaml
+release:
+  name: test-release
+tests:
+  - it: renders a deployment with the chart's image and port
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: metadata.name
+          value: test-release-omfgv2
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/atgardner/omfgv2:latest
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 3000
+
+  # values.yaml leaves image.tag empty so the chart deploys the appVersion CI
+  # pinned to this exact build; an explicit tag has to win over it.
+  - it: prefers an explicit image tag over appVersion
+    set:
+      image.tag: main-abc1234
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: ghcr.io/atgardner/omfgv2:main-abc1234
+
+  # The app reads PORT, so a containerPort that the env does not match would
+  # leave the Service pointing at a port nothing listens on.
+  - it: passes containerPort through to PORT
+    set:
+      containerPort: 8080
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[0]
+          value:
+            name: PORT
+            value: "8080"
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8080
+
+  - it: mounts no volume by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.volumes
+      - notExists:
+          path: spec.template.spec.containers[0].volumeMounts
+
+  - it: mounts the cache claim it provisions
+    set:
+      persistence.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0]
+          value:
+            name: cache
+            mountPath: /service/cache
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: test-release-omfgv2
+
+  - it: mounts an existing claim by name
+    set:
+      persistence.enabled: true
+      persistence.existingClaim: my-cache
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: my-cache
+
+  # RollingUpdate plus a ReadWriteOnce volume deadlocks: the new pod cannot
+  # attach while the outgoing one still holds it.
+  - it: switches to Recreate when a volume is mounted
+    set:
+      persistence.enabled: true
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+
+  - it: leaves the default strategy alone without a volume
+    asserts:
+      - notExists:
+          path: spec.strategy
+
+  - it: merges podLabels into the pod without disturbing the selector
+    set:
+      podLabels:
+        tier: web
+    asserts:
+      - equal:
+          path: spec.template.metadata.labels["tier"]
+          value: web
+      - equal:
+          path: spec.template.metadata.labels["app.kubernetes.io/name"]
+          value: omfgv2
+      - notExists:
+          path: spec.selector.matchLabels["tier"]
+
+  - it: omits the security context when empty
+    asserts:
+      - notExists:
+          path: spec.template.spec.securityContext
+
+  - it: sets an fsGroup when one is given
+    set:
+      podSecurityContext:
+        fsGroup: 10001
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 10001
