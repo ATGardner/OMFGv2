@@ -5,7 +5,10 @@
     "helpers:pinGitHubActionDigestsToSemver",
     ":prHourlyLimitNone"
   ],
-  "labels": ["dependencies"],
+  "labels": [
+    "dependencies"
+  ],
+  "semanticCommits": "enabled",
   "timezone": "Asia/Jerusalem",
   "lockFileMaintenance": {
     "enabled": true
@@ -26,7 +29,19 @@
         "github-actions"
       ],
       "groupName": "github actions",
-      "pinDigests": true
+      "automerge": false
+    },
+    {
+      "matchDepTypes": [
+        "dependencies"
+      ],
+      "semanticCommitType": "fix"
+    },
+    {
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "groupName": "dev dependencies"
     },
     {
       "matchDatasources": [
@@ -40,14 +55,14 @@
     },
     {
       "matchDepTypes": [
-        "devDependencies"
+        "engines"
       ],
-      "groupName": "dev dependencies"
-    },
-    {
-      "matchDepTypes": ["engines"],
-      "matchPackageNames": ["node"],
-      "matchUpdateTypes": ["major"],
+      "matchPackageNames": [
+        "node"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "enabled": true
     }
   ]
