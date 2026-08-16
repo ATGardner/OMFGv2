@@ -38,6 +38,25 @@ export default tseslint.config(
       globals: {...globals.node},
     },
     rules: {
+      /*
+       * `describe` and `it` return a promise that resolves when the test
+       * finishes, and node:test's own API expects you to drop it — awaiting
+       * every one would be noise. Scoped to those three imported from
+       * node:test, so a genuinely floating promise anywhere else still fails.
+       */
+      '@typescript-eslint/no-floating-promises': [
+        'error',
+        {
+          allowForKnownSafeCalls: [
+            {
+              from: 'package',
+              package: 'node:test',
+              name: ['describe', 'it', 'test'],
+            },
+          ],
+        },
+      ],
+
       // Fixable - errors
       'one-var': ['error', {const: 'never', let: 'never'}],
       'dot-notation': 'error',
@@ -120,19 +139,6 @@ export default tseslint.config(
       'no-underscore-dangle': 'warn',
       'prefer-destructuring': 'warn',
       'prefer-rest-params': 'warn',
-    },
-  },
-  {
-    files: ['test/**/*.ts'],
-    languageOptions: {globals: {...globals.mocha}},
-    /*
-     * Chai assertions are property accesses — `expect(x).to.be.undefined` is a
-     * bare expression by design, and both the core rule and its
-     * typescript-eslint replacement flag it.
-     */
-    rules: {
-      'no-unused-expressions': 'off',
-      '@typescript-eslint/no-unused-expressions': 'off',
     },
   },
 );

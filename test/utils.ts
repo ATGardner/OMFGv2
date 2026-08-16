@@ -1,6 +1,6 @@
-import {existsSync, rmdirSync} from 'fs';
-import {expect, use} from 'chai';
-import chaiString from 'chai-string';
+import assert from 'node:assert/strict';
+import {existsSync, rmdirSync} from 'node:fs';
+import {afterEach, describe, it} from 'node:test';
 import type {GeoJsonInput} from '../src/utils/index.ts';
 import {
   buildTileUrl,
@@ -11,17 +11,19 @@ import {
 } from '../src/utils/index.ts';
 import Tile from '../src/utils/Tile.ts';
 
-use(chaiString);
-
 describe('Utils', () => {
+  /*
+   * `extractCoordinates` is a generator with a defined traversal order, so
+   * these assert the exact sequence. chai's `deep.members`, which they used
+   * before, ignored order and so would not have caught a reordering.
+   */
   describe('extractCoordinates', () => {
     it('extracts coordinates from a Point', () => {
       const input: GeoJsonInput = {
         type: 'Point',
         coordinates: [30, 10],
       };
-      const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([[30, 10]]);
+      assert.deepEqual([...extractCoordinates(input)], [[30, 10]]);
     });
     it('extracts coordinates from a LineString', () => {
       const input: GeoJsonInput = {
@@ -32,12 +34,14 @@ describe('Utils', () => {
           [40, 40],
         ],
       };
-      const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([
-        [30, 10],
-        [10, 30],
-        [40, 40],
-      ]);
+      assert.deepEqual(
+        [...extractCoordinates(input)],
+        [
+          [30, 10],
+          [10, 30],
+          [40, 40],
+        ],
+      );
     });
     it('extracts coordinates from a Polygon', () => {
       const input: GeoJsonInput = {
@@ -58,18 +62,20 @@ describe('Utils', () => {
           ],
         ],
       };
-      const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([
-        [35, 10],
-        [45, 45],
-        [15, 40],
-        [10, 20],
-        [35, 10],
-        [20, 30],
-        [35, 35],
-        [30, 20],
-        [20, 30],
-      ]);
+      assert.deepEqual(
+        [...extractCoordinates(input)],
+        [
+          [35, 10],
+          [45, 45],
+          [15, 40],
+          [10, 20],
+          [35, 10],
+          [20, 30],
+          [35, 35],
+          [30, 20],
+          [20, 30],
+        ],
+      );
     });
     it('extracts coordinates from a MultiPoint', () => {
       const input: GeoJsonInput = {
@@ -81,13 +87,15 @@ describe('Utils', () => {
           [30, 10],
         ],
       };
-      const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([
-        [10, 40],
-        [40, 30],
-        [20, 20],
-        [30, 10],
-      ]);
+      assert.deepEqual(
+        [...extractCoordinates(input)],
+        [
+          [10, 40],
+          [40, 30],
+          [20, 20],
+          [30, 10],
+        ],
+      );
     });
     it('extracts coordinates from a MultiLineString', () => {
       const input: GeoJsonInput = {
@@ -106,16 +114,18 @@ describe('Utils', () => {
           ],
         ],
       };
-      const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([
-        [10, 10],
-        [20, 20],
-        [10, 40],
-        [40, 40],
-        [30, 30],
-        [40, 20],
-        [30, 10],
-      ]);
+      assert.deepEqual(
+        [...extractCoordinates(input)],
+        [
+          [10, 10],
+          [20, 20],
+          [10, 40],
+          [40, 40],
+          [30, 30],
+          [40, 20],
+          [30, 10],
+        ],
+      );
     });
     it('extracts coordinates from a MultiPolygon', () => {
       const input: GeoJsonInput = {
@@ -147,23 +157,25 @@ describe('Utils', () => {
           ],
         ],
       };
-      const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([
-        [40, 40],
-        [20, 45],
-        [45, 30],
-        [40, 40],
-        [20, 35],
-        [10, 30],
-        [10, 10],
-        [30, 5],
-        [45, 20],
-        [20, 35],
-        [30, 20],
-        [20, 15],
-        [20, 25],
-        [30, 20],
-      ]);
+      assert.deepEqual(
+        [...extractCoordinates(input)],
+        [
+          [40, 40],
+          [20, 45],
+          [45, 30],
+          [40, 40],
+          [20, 35],
+          [10, 30],
+          [10, 10],
+          [30, 5],
+          [45, 20],
+          [20, 35],
+          [30, 20],
+          [20, 15],
+          [20, 25],
+          [30, 20],
+        ],
+      );
     });
     it('extracts coordinates from a Feature', () => {
       const input: GeoJsonInput = {
@@ -176,8 +188,7 @@ describe('Utils', () => {
           prop0: 'value0',
         },
       };
-      const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([[102.0, 0.5]]);
+      assert.deepEqual([...extractCoordinates(input)], [[102.0, 0.5]]);
     });
     it('skips a Feature with no geometry', () => {
       const input: GeoJsonInput = {
@@ -185,8 +196,7 @@ describe('Utils', () => {
         geometry: null,
         properties: null,
       };
-      const output = [...extractCoordinates(input)];
-      expect(output).to.deep.equal([]);
+      assert.deepEqual([...extractCoordinates(input)], []);
     });
     it('extracts coordinates from a FeatureCollection', () => {
       const input: GeoJsonInput = {
@@ -239,53 +249,55 @@ describe('Utils', () => {
           },
         ],
       };
-      const output = [...extractCoordinates(input)];
-      expect(output).to.have.deep.members([
-        [102.0, 0.5],
-        [102.0, 0.0],
-        [103.0, 1.0],
-        [104.0, 0.0],
-        [105.0, 1.0],
-        [100.0, 0.0],
-        [101.0, 0.0],
-        [101.0, 1.0],
-        [100.0, 1.0],
-        [100.0, 0.0],
-      ]);
+      assert.deepEqual(
+        [...extractCoordinates(input)],
+        [
+          [102.0, 0.5],
+          [102.0, 0.0],
+          [103.0, 1.0],
+          [104.0, 0.0],
+          [105.0, 1.0],
+          [100.0, 0.0],
+          [101.0, 0.0],
+          [101.0, 1.0],
+          [100.0, 1.0],
+          [100.0, 0.0],
+        ],
+      );
     });
   });
   describe('coordinates2Tile', () => {
     it('calculates the right tile by coordinates', () => {
-      const input = [0, 17];
-      const result = coordinates2Tile(input, 16);
-      expect(result).to.have.property('x', 32768);
-      expect(result).to.have.property('y', 29626);
-      expect(result).to.have.property('zoom', 16);
+      const result = coordinates2Tile([0, 17], 16);
+      assert.equal(result.x, 32768);
+      assert.equal(result.y, 29626);
+      assert.equal(result.zoom, 16);
     });
   });
   describe('coordinates2Tiles', () => {
     it('returns the right tiles collection with the default buffer', () => {
-      const coordinates = [34.797757, 32.110635];
-      const tiles = [...coordinates2Tiles(coordinates, 16)];
-      const result = tiles.map((t) => t.toString());
-      expect(result).to.deep.equal([
-        '39101-26588-16',
-        '39101-26589-16',
-        '39101-26590-16',
-        '39101-26591-16',
-        '39102-26588-16',
-        '39102-26589-16',
-        '39102-26590-16',
-        '39102-26591-16',
-        '39103-26588-16',
-        '39103-26589-16',
-        '39103-26590-16',
-        '39103-26591-16',
-        '39104-26588-16',
-        '39104-26589-16',
-        '39104-26590-16',
-        '39104-26591-16',
-      ]);
+      const tiles = [...coordinates2Tiles([34.797757, 32.110635], 16)];
+      assert.deepEqual(
+        tiles.map((t) => t.toString()),
+        [
+          '39101-26588-16',
+          '39101-26589-16',
+          '39101-26590-16',
+          '39101-26591-16',
+          '39102-26588-16',
+          '39102-26589-16',
+          '39102-26590-16',
+          '39102-26591-16',
+          '39103-26588-16',
+          '39103-26589-16',
+          '39103-26590-16',
+          '39103-26591-16',
+          '39104-26588-16',
+          '39104-26589-16',
+          '39104-26590-16',
+          '39104-26591-16',
+        ],
+      );
     });
   });
   describe('buildTileUrl', () => {
@@ -293,16 +305,20 @@ describe('Utils', () => {
       const sourceTemplate =
         'http://a.tile.openstreetmap.org/{zoom}/{x}/{y}.png';
       const tile = new Tile(1, 2, 3);
-      const result = buildTileUrl(sourceTemplate, tile);
-      expect(result).to.equal('http://a.tile.openstreetmap.org/3/1/2.png');
+      assert.equal(
+        buildTileUrl(sourceTemplate, tile),
+        'http://a.tile.openstreetmap.org/3/1/2.png',
+      );
     });
     it('creates the 2nd address using the 2nd sub domain', () => {
       const sourceTemplate =
         'http://[ab].tile.openstreetmap.org/{zoom}/{x}/{y}.png';
       const tile = new Tile(1, 2, 3);
       buildTileUrl(sourceTemplate, tile);
-      const result = buildTileUrl(sourceTemplate, tile);
-      expect(result).to.equal('http://b.tile.openstreetmap.org/3/1/2.png');
+      assert.equal(
+        buildTileUrl(sourceTemplate, tile),
+        'http://b.tile.openstreetmap.org/3/1/2.png',
+      );
     });
     it('creates the 3rd address using the 1st sub domain', () => {
       const sourceTemplate =
@@ -310,8 +326,10 @@ describe('Utils', () => {
       const tile = new Tile(1, 2, 3);
       buildTileUrl(sourceTemplate, tile);
       buildTileUrl(sourceTemplate, tile);
-      const result = buildTileUrl(sourceTemplate, tile);
-      expect(result).to.equal('http://a.tile.openstreetmap.org/3/1/2.png');
+      assert.equal(
+        buildTileUrl(sourceTemplate, tile),
+        'http://a.tile.openstreetmap.org/3/1/2.png',
+      );
     });
   });
   describe('ensurePath', () => {
@@ -325,8 +343,7 @@ describe('Utils', () => {
     });
     it('creates a new sub folder', () => {
       ensurePath('test-subfolder/somefile');
-      const exists = existsSync('test-subfolder');
-      expect(exists).to.be.true;
+      assert.ok(existsSync('test-subfolder'));
     });
   });
 });
