@@ -17,26 +17,26 @@ export default class JPEGSource extends WMTSSource {
     return `JPEG_${this.Name}`;
   }
 
-  override async init(): Promise<void> {
-    await super.init();
-    return this.jpegCache.init();
+  override init(): void {
+    super.init();
+    this.jpegCache.init();
   }
 
-  async updateJpegCache(
+  updateJpegCache(
     tile: Tile,
     data: Uint8Array | undefined,
     lastCheck: string,
-  ): Promise<void> {
+  ): void {
     if (data) {
-      await this.jpegCache.addTile(tile, data, lastCheck);
+      this.jpegCache.addTile(tile, data, lastCheck);
     } else {
-      await this.jpegCache.updateLastCheck(tile, lastCheck);
+      this.jpegCache.updateLastCheck(tile, lastCheck);
     }
   }
 
   override async getTileData(tile: Tile): Promise<Uint8Array | undefined> {
     const {data: cachedData, lastCheck}: Partial<CachedTile> =
-      (await this.jpegCache.getTile(tile)) ?? {};
+      this.jpegCache.getTile(tile) ?? {};
     if (lastCheck && moment().subtract(1, 'day').isBefore(lastCheck)) {
       return cachedData;
     }
@@ -44,15 +44,15 @@ export default class JPEGSource extends WMTSSource {
     const data = await super.getTileData(tile);
     if (data) {
       const jpegData = await pngToJpeg(data, this.quality);
-      await this.updateJpegCache(tile, jpegData, new Date().toISOString());
+      this.updateJpegCache(tile, jpegData, new Date().toISOString());
       return jpegData;
     }
 
     return cachedData;
   }
 
-  override async close(): Promise<void> {
-    await super.close();
-    return this.jpegCache.close();
+  override close(): void {
+    super.close();
+    this.jpegCache.close();
   }
 }
