@@ -1,11 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
+    "config:best-practices",
     "helpers:pinGitHubActionDigestsToSemver",
     ":prHourlyLimitNone"
   ],
-  "labels": ["dependencies"],
+  "labels": [
+    "dependencies"
+  ],
+  "semanticCommits": "enabled",
   "timezone": "Asia/Jerusalem",
   "lockFileMaintenance": {
     "enabled": true
@@ -26,19 +29,40 @@
         "github-actions"
       ],
       "groupName": "github actions",
-      "pinDigests": true
+      "automerge": false
+    },
+    {
+      "matchDepTypes": [
+        "dependencies"
+      ],
+      "semanticCommitType": "fix"
     },
     {
       "matchDepTypes": [
         "devDependencies"
       ],
-      "groupName": "dev dependencies",
+      "groupName": "dev dependencies"
+    },
+    {
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchUpdateTypes": [
+        "digest",
+        "pinDigest"
+      ],
       "automerge": true
     },
     {
-      "matchDepTypes": ["engines"],
-      "matchPackageNames": ["node"],
-      "matchUpdateTypes": ["major"],
+      "matchDepTypes": [
+        "engines"
+      ],
+      "matchPackageNames": [
+        "node"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "enabled": true
     }
   ]
