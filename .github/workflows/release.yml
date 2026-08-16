@@ -1,0 +1,128 @@
+name: Release
+
+# Runs after CI succeeds on main, so the image for that commit already exists.
+# release-please accumulates conventional commits into a release PR; merging it
+# bumps the version, updates CHANGELOG.md, tags vX.Y.Z and creates the GitHub
+# release. The image job then re-tags the image CI already built for that exact
+# commit — no rebuild, so `latest` and `vX.Y.Z` are bit-for-bit what was tested.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  release-please:
+    name: Release PR or release
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    # No GITHUB_TOKEN scopes: release-please runs entirely on the app token
+    # minted below, which carries contents/issues/pull-requests write itself.
+    permissions: {}
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      # Events caused by the default GITHUB_TOKEN never trigger workflows —
+      # GitHub suppresses them to prevent recursion. That is why the release
+      # branch got no CI run and its required checks sat at "Expected" forever,
+      # and why the PR, authored by github-actions[bot], had its `pull_request`
+      # workflows held for maintainer approval. An app installation token is
+      # exempt from that rule, so the push and the PR behave like a human's.
+      - id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - id: release
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+  image:
+    name: Tag release image
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    env:
+      IMAGE: ghcr.io/atgardner/omfgv2
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Re-tag the image CI built for this commit
+        run: |
+          set -euo pipefail
+
+          # Must match ci.yml's `type=sha,format=short,prefix={{branch}}-`,
+          # which metadata-action renders as `main-<7 chars of sha>`.
+          source="$IMAGE:main-${HEAD_SHA:0:7}"
+          echo "Source: $source"
+
+          if ! docker buildx imagetools inspect "$source" >/dev/null 2>&1; then
+            echo "::error::$source not found — did CI's image job publish it?"
+            exit 1
+          fi
+
+          docker buildx imagetools create \
+            -t "$IMAGE:$TAG" \
+            -t "$IMAGE:latest" \
+            "$source"
+
+          docker buildx imagetools inspect "$IMAGE:$TAG" \
+            --format '{{println .Manifest.Digest}}'
+
+  chart:
+    name: Push release chart
+    needs: [release-please, image]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      CHARTS: oci://ghcr.io/atgardner/charts
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo '${{ secrets.GITHUB_TOKEN }}' \
+            | helm registry login ghcr.io -u '${{ github.actor }}' --password-stdin
+
+      - name: Package and push
+        run: |
+          set -euo pipefail
+
+          # A chart version is SemVer, which has no leading `v` — Helm only
+          # tolerates one. It also becomes the OCI tag verbatim, and Helm
+          # resolves an exact `--version` straight to a tag, so publishing
+          # `v1.2.3` makes `--version 1.2.3` a 404. Strip it. This also matches
+          # ci.yml, whose branch charts are already bare `<base>-<slug>-<sha>`.
+          #
+          # --app-version keeps the `v`: it is not a version to be parsed, it
+          # is the image tag values.yaml falls back to, and must match exactly.
+          #
+          # No `latest` chart: it is not valid SemVer, and CI already publishes
+          # `<base>-main` off the tip of main for pre-release deployments.
+          version="${TAG#v}"
+          helm package charts/omfgv2 --version "$version" --app-version "$TAG"
+          helm push "omfgv2-$version.tgz" "$CHARTS"

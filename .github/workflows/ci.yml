@@ -1,0 +1,245 @@
+name: CI
+
+# Every push to every branch, main included — `main` and `main-<short-sha>` give
+# you something deployable from the tip of main before a release is cut.
+#
+# Branches only. A bare `push` also matches tags, and release-please's `vX.Y.Z`
+# tag would start a run whose metadata is nonsense: `type=ref,event=branch`
+# emits nothing on a tag ref and `prefix={{branch}}-` renders empty, so the
+# image job asks for the invalid tag `:-<sha>` and buildx rejects it. There is
+# nothing to build there anyway — release.yml re-tags the image this workflow
+# already produced for that commit rather than rebuilding it.
+on:
+  push:
+    branches: ['**']
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  # One job rather than three: there is no build step to parallelise around —
+  # Node runs the TypeScript directly — and the whole suite is a few seconds,
+  # so a second runner would cost more in checkout and `npm ci` than it saves.
+  verify:
+    name: Typecheck, lint and test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # Matches `engines.node` in package.json. node:sqlite and the native type
+      # stripping this project relies on are both unflagged on 24.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm run lint:ci
+
+      - run: npm test
+
+  # Release-please's branch only bumps the version and rewrites the changelog,
+  # and it is force-pushed on every merge to main — an image per force-push, and
+  # nothing ever pulls it. `verify` still runs there so branch protection's
+  # required checks can be satisfied on the release PR.
+  image:
+    name: Build and push image
+    needs: verify
+    if: ${{ !startsWith(github.ref_name, 'release-please--') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # arm64 is built under emulation rather than on an arm runner. That is the
+      # right trade here because the Dockerfile compiles nothing: since the
+      # sqlite3 package was replaced by node:sqlite, no production dependency
+      # has an install script, so `npm ci --omit=dev` just unpacks a dozen
+      # pure-JS packages. Emulating that costs about a minute, against a second
+      # job, digest artifacts and a merge step to avoid it.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+
+      # The default docker driver builds one platform at a time. buildx's
+      # container driver is what makes `platforms:` below build both at once.
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Produces two tags, e.g. on branch `ci` at commit a1b2c3d:
+      #   ghcr.io/atgardner/omfgv2:ci
+      #   ghcr.io/atgardner/omfgv2:ci-a1b2c3d
+      # Slashes in branch names are slugified, so `renovate/foo` -> `renovate-foo`.
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
+        with:
+          images: ghcr.io/atgardner/omfgv2
+          tags: |
+            type=ref,event=branch
+            type=sha,format=short,prefix={{branch}}-
+
+      # Both tags point at a manifest list rather than a single image, so
+      # `docker pull` resolves per host arch. release.yml needs no change:
+      # `buildx imagetools create` copies the whole index, so the release tag
+      # inherits both platforms.
+      - name: Build and push
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          # The production image lives under docker/ alongside the compose
+          # files used for local development; there is no Dockerfile at the
+          # root for buildx to find by default.
+          file: docker/prod.dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # The `npm ci` layer only changes when package-lock.json does, which
+          # is what makes the emulated leg cheap on most pushes.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Nothing would otherwise look at the chart before publishing it — a template
+  # that rendered garbage would still get packaged and pushed, and you would
+  # find out at `helm install`. Runs alongside `verify` rather than after it:
+  # the chart does not depend on the application code building.
+  chart-verify:
+    name: Lint and test chart
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      # The publish job uses whatever helm the runner image ships. This one
+      # pins it: a suite whose result changes when that image rolls is not a
+      # suite, and `helm plugin install` flags differ across helm majors.
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5.0.1
+        with:
+          version: v4.2.3
+
+      - run: helm lint charts/omfgv2 --strict
+
+      - name: Install kubeconform
+        env:
+          VERSION: v0.8.0
+          SHA256: 9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -fsSL -o "$RUNNER_TEMP/kubeconform.tar.gz" \
+            "https://github.com/yannh/kubeconform/releases/download/$VERSION/kubeconform-linux-amd64.tar.gz"
+          echo "$SHA256  $RUNNER_TEMP/kubeconform.tar.gz" | sha256sum -c -
+          tar xz -C "$RUNNER_TEMP/bin" -f "$RUNNER_TEMP/kubeconform.tar.gz" kubeconform
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      # `helm template` on its own proves almost nothing. A `{{- with }}` block
+      # at the wrong nindent still emits parseable YAML and helm exits 0; it
+      # just hangs the value off the wrong node. kubeconform checks the whole
+      # rendered manifest against the real Kubernetes schemas, so `-strict`
+      # rejects that as an unknown property. It is the only layer here that
+      # catches a misplaced field nobody thought to write an assertion for.
+      - name: Validate rendered manifests
+        env:
+          CRD_SCHEMAS: https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json
+        run: |
+          set -euo pipefail
+
+          # kubeconform treats a kind it has no schema for as an error, not a
+          # skip, so anything CRD-backed — the chart's HTTPRoute today, an
+          # HTTPRoute-adjacent kind it grows later — needs a source beyond the
+          # built-in Kubernetes schemas. The `default` location has to be
+          # repeated once another is named.
+          validate() {
+            helm template ci charts/omfgv2 "$@" \
+              | kubeconform -strict -summary -kubernetes-version 1.34.0 \
+                  -schema-location default \
+                  -schema-location "$CRD_SCHEMAS" -
+          }
+
+          # values.yaml leaves most optional blocks empty, so the default
+          # render never reaches them. ci/all-values.yaml sets all of them.
+          validate
+          validate --values charts/omfgv2/ci/all-values.yaml
+
+      # Schemas only say a field is allowed where it landed, never that it
+      # landed where it was meant to. These assert the values themselves: the
+      # cache mount path, the Recreate switch, the RWO/replica guard, the
+      # fullname collapse. All of them render schema-valid YAML when broken.
+      - name: Unit test the chart
+        run: |
+          set -euo pipefail
+          helm plugin install https://github.com/helm-unittest/helm-unittest \
+            --version v1.1.2 --verify=false
+          helm unittest charts/omfgv2
+
+  chart:
+    name: Package and push chart
+    needs: [image, chart-verify]
+    if: ${{ !startsWith(github.ref_name, 'release-please--') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      CHARTS: oci://ghcr.io/atgardner/charts
+      CHART_REF: ghcr.io/atgardner/charts/omfgv2
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Log in to GitHub Container Registry
+        run: |
+          echo '${{ secrets.GITHUB_TOKEN }}' \
+            | helm registry login ghcr.io -u '${{ github.actor }}' --password-stdin
+
+      - name: Package and push
+        run: |
+          set -euo pipefail
+
+          # Two slugs, deliberately. The image tag is whatever metadata-action
+          # produced (it permits `.` and `_`); a chart version is SemVer, whose
+          # pre-release identifiers allow only [0-9A-Za-z-]. They can differ, and
+          # that is fine — the chart version is a label, while --app-version
+          # carries the exact image tag the chart will deploy.
+          image_slug=$(printf '%s' "$GITHUB_REF_NAME" | tr '[:upper:]' '[:lower:]' \
+            | sed 's#[^a-z0-9._-]#-#g')
+          chart_slug=$(printf '%s' "$GITHUB_REF_NAME" | tr '[:upper:]' '[:lower:]' \
+            | sed 's#[^a-z0-9-]#-#g')
+          short="${GITHUB_SHA:0:7}"
+
+          # Branch charts are pre-releases of the release this branch is built
+          # on, so they read as "2.0.1 plus this branch" rather than a bare
+          # 0.0.0. release-please owns this file, so it is the source of truth.
+          base=$(jq -r '."."' .release-please-manifest.json)
+          echo "base: $base | image slug: $image_slug | chart slug: $chart_slug | sha: $short"
+
+          # Per-commit chart: pins the matching per-commit image.
+          helm package charts/omfgv2 \
+            --version "$base-$chart_slug-$short" \
+            --app-version "$image_slug-$short"
+          helm push "omfgv2-$base-$chart_slug-$short.tgz" "$CHARTS"
+
+          # Moving branch chart: its appVersion is the moving `<branch>` image
+          # tag, so it always resolves to the newest build of this branch.
+          # Re-pushed every commit so template changes land in it too.
+          helm package charts/omfgv2 \
+            --version "$base-$chart_slug" \
+            --app-version "$image_slug"
+          helm push "omfgv2-$base-$chart_slug.tgz" "$CHARTS"
