@@ -172,9 +172,17 @@ export default class DownloadJob {
               counters.incrementFailed();
             }
           } catch (error) {
+            /*
+             * The reason goes in the message rather than beside it: a trailing
+             * string argument is not metadata winston knows what to do with,
+             * and it dropped it — so this line read `Failed getting tile
+             * 5/12/9` and never said why. An Error passed here instead is
+             * unpacked into a `stack` field by the logger's `errors` format.
+             */
             logger.error(
-              `Failed getting tile ${td.toString()}`,
-              error instanceof Error ? error.message : error,
+              `Failed getting tile ${td.toString()}: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
             );
             observeTileProcessed('failed');
             counters.incrementFailed();

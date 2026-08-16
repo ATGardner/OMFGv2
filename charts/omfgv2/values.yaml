@@ -65,6 +65,15 @@ ingress:
 # The app serves on 3000 and reads PORT from the environment.
 containerPort: 3000
 
+# Read by the app as LOG_LEVEL. Empty leaves its default, `verbose`, which is
+# the level a download job reports its progress at — the only account of a job
+# that outlives the request that started it. Drop to `info` for the HTTP lines
+# and job outcomes alone, or `warn`/`error` to quieten it further.
+#
+# A level winston does not know is ignored with a warning rather than silencing
+# the logger, so a typo here costs you nothing but the level you asked for.
+logLevel: ""
+
 # Prometheus metrics, served on their own listener separate from the API —
 # `ingress` and `httpRoute` send every path to the `http` port, so a /metrics
 # route there would publish the server's internals along with the downloader.
