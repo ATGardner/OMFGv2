@@ -1,9 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": [
-    "config:best-practices is config:recommended plus docker:pinDigests, helpers:pinGitHubActionDigests, :pinDevDependencies, :configMigration, abandonments:recommended and security:minimumReleaseAgeNpm.",
-    "helpers:pinGitHubActionDigestsToSemver stays after it, so the `# v1.2.3` comment beside a pinned action digest is a semver tag rather than the raw ref."
-  ],
   "extends": [
     "config:best-practices",
     "helpers:pinGitHubActionDigestsToSemver",
