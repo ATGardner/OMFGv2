@@ -4,7 +4,12 @@ import {PassThrough} from 'node:stream';
 import {after, describe, it} from 'node:test';
 import express from 'express';
 import {transports} from 'winston';
-import {errorLogger, getLogger, requestLogger} from '../src/utils/logging.ts';
+import {
+  errorLogger,
+  getLogger,
+  requestLogger,
+  resolveLogLevel,
+} from '../src/utils/logging.ts';
 
 /*
  * A stream transport on the shared logger, so these assert what is actually
@@ -74,6 +79,32 @@ async function serve(
     });
   }
 }
+
+describe('resolveLogLevel', () => {
+  it('defaults to verbose when LOG_LEVEL is unset or empty', () => {
+    // An env var nothing sets, which is the shape of the real unset case.
+    assert.equal(resolveLogLevel(process.env.OMFG_NO_SUCH_LEVEL), 'verbose');
+    assert.equal(resolveLogLevel(''), 'verbose');
+  });
+
+  it('accepts every level winston knows, in any case', () => {
+    assert.equal(resolveLogLevel('debug'), 'debug');
+    assert.equal(resolveLogLevel('error'), 'error');
+    assert.equal(resolveLogLevel('WARN'), 'warn');
+  });
+
+  /*
+   * The failure this guards against is silent: winston takes an unknown level
+   * without complaint and then logs nothing at all, so a typo in a deployment
+   * would read as an app that had stopped doing anything.
+   */
+  it('falls back to the default for a level winston does not know', () => {
+    assert.equal(resolveLogLevel('quiet'), 'verbose');
+    assert.equal(resolveLogLevel('trace'), 'verbose');
+    // Not a level just because Object.prototype has the property.
+    assert.equal(resolveLogLevel('toString'), 'verbose');
+  });
+});
 
 describe('logging', () => {
   it('logs one line per request, with method, path and status', async () => {

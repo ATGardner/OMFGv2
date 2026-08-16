@@ -47,6 +47,24 @@ tests:
           path: spec.template.spec.containers[0].ports[0].containerPort
           value: 8080
 
+  # Absent rather than empty: an empty LOG_LEVEL is a value the app would have
+  # to treat as "unset" itself, and the chart has no reason to make it.
+  - it: sets no log level by default
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].env
+          count: 3
+
+  - it: passes logLevel through when set
+    set:
+      logLevel: info
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[3]
+          value:
+            name: LOG_LEVEL
+            value: info
+
   # The app serves metrics unless METRICS_ENABLED says otherwise, so an unset
   # variable here would leave a listener running on a port the chart never
   # declared and the Service never exposed. That is why it is rendered either
