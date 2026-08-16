@@ -197,10 +197,6 @@ export default class DownloadJob {
         promises.push(tilePromise);
       }
 
-      if (this.tileSource.generateAllTiles) {
-        await this.tileSource.generateAllTiles();
-      }
-
       await Promise.all(promises);
       this.counters = undefined;
       /*

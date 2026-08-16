@@ -1,7 +1,6 @@
 import type {SourceDescriptor, TileSource} from '../types.ts';
 import FSSource from './fsSource.ts';
 import JPEGSource from './jpegSource.ts';
-import MaperitiveSource from './maperitiveSource.ts';
 import MBSource from './mbSource.ts';
 import sourcesJson from './sources.json' with {type: 'json'};
 import WMTSSource from './wmtsSource.ts';
@@ -20,8 +19,6 @@ export function getTileSource(
   source: string,
 ): TileSource | undefined {
   switch (sourceType) {
-    case 'Maperitive':
-      return new MaperitiveSource(source);
     case 'MB':
       return new MBSource(source);
     case 'FS':

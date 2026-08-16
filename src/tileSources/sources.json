@@ -57,14 +57,6 @@
     "type": "TileServer"
   },
   {
-    "Name": "Maperitive",
-    "Address": "D:\\Users\\Noam\\Downloads\\OMFG\\aosta.sqlitedb",
-    "minZoom": 10,
-    "maxZoom": 15,
-    "attribution": "whatever",
-    "type": "Maperitive"
-  },
-  {
     "Name": "NZ Topo50",
     "Address": "http://tiles-[abcd].data-cdn.linz.govt.nz/services;key=65bc0122063d4dbebe7a16f80eb5f97e/tiles/v4/layer=52343/EPSG:3857/{z}/{x}/{y}.png",
     "minZoom": 0,
