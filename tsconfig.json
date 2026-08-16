@@ -4,7 +4,7 @@
     "lib": ["esnext"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "types": ["node", "mocha"],
+    "types": ["node"],
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
