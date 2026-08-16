@@ -11,4 +11,6 @@ ADD . /service
 
 WORKDIR /service
 
-ENTRYPOINT ["node", "index.js"]
+# Node 24 strips the types natively, so the image runs the .ts sources
+# directly. types/ is compile-time only and never read at runtime.
+ENTRYPOINT ["node", "index.ts"]
