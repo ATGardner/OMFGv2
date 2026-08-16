@@ -34,6 +34,27 @@ tests:
           path: spec.ports[0].targetPort
           value: http
 
+  - it: exposes only the http port by default
+    asserts:
+      - lengthEqual:
+          path: spec.ports
+          count: 1
+
+  # The ServiceMonitor selects this port by the name `metrics`, so the name is
+  # part of the contract and not a label.
+  - it: exposes the metrics port by name alongside http when enabled
+    set:
+      metrics.enabled: true
+      metrics.port: 9099
+    asserts:
+      - equal:
+          path: spec.ports[1]
+          value:
+            port: 9099
+            targetPort: metrics
+            protocol: TCP
+            name: metrics
+
   - it: selects the pods this release created
     asserts:
       - equal:

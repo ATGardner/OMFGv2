@@ -1,6 +1,7 @@
 import express, {type ErrorRequestHandler} from 'express';
 import {getParser, toDownloadRequest} from './arguments.ts';
 import downloadManager from './src/DownloadManager.ts';
+import {metricsMiddleware, startMetricsServer} from './src/metrics.ts';
 import {errorLogger, getLogger, requestLogger} from './src/utils/logging.ts';
 
 const logger = getLogger('index');
@@ -13,6 +14,8 @@ const app = express();
  */
 app.use(express.json());
 app.use(requestLogger);
+// Ahead of the routes, so unmatched paths and error responses are counted too.
+app.use(metricsMiddleware);
 
 /*
  * Express 5 forwards a rejected handler promise to the error middleware on its
@@ -56,6 +59,8 @@ app.listen(port, () => {
   logger.info(`OMFG listening on port ${port}!`);
   process.send?.('ready');
 });
+
+startMetricsServer();
 
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught Exception', error);

@@ -1,5 +1,6 @@
 import {basename, extname, join} from 'path';
 import DownloadJob from './DownloadJob.ts';
+import {observeJob, observeJobRejected} from './metrics.ts';
 import {getPackager} from './packagers/index.ts';
 import {getRouteSource} from './routeSources/index.ts';
 import {getTileSource} from './tileSources/index.ts';
@@ -79,7 +80,7 @@ class DownloadManager {
   private async runDownload(job: DownloadJob): Promise<void> {
     this.downloading = true;
     try {
-      await job.start();
+      await observeJob(() => job.start());
     } finally {
       this.downloading = false;
     }
@@ -98,6 +99,12 @@ class DownloadManager {
     outputFile,
   }: DownloadRequest): string {
     if (this.downloading) {
+      /*
+       * Counted separately from the 500 this becomes, because it is not a
+       * fault: it is the one-job-at-a-time limit turning someone away, and
+       * the only way to tell that the limit is costing anyone anything.
+       */
+      observeJobRejected();
       throw new Error('Download queue is full');
     }
 
