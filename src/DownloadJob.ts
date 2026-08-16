@@ -1,4 +1,5 @@
 import type {FeatureCollection, Geometry} from 'geojson';
+import {observeJobTiles, observeTileProcessed} from './metrics.ts';
 import type {JobState, Packager, RouteSource, TileSource} from './types.ts';
 import {
   coordinates2Tiles,
@@ -139,6 +140,7 @@ export default class DownloadJob {
       const total = tileDefinitions.length;
       const counters = new Counters(total);
       this.counters = counters;
+      observeJobTiles(total);
       logger.verbose(`Downloading ${total} tiles`);
       let percent = 0;
       const promises = [];
@@ -148,6 +150,7 @@ export default class DownloadJob {
         const tilePromise = (async () => {
           try {
             if (this.packager.hasTile(td)) {
+              observeTileProcessed('packaged');
               counters.incrementDone();
               return;
             }
@@ -155,8 +158,17 @@ export default class DownloadJob {
             const data = await this.tileSource.getTileData(td);
             if (data) {
               this.packager.addTile(td, data);
+              /*
+               * `fetched` covers both a real download and a tile the source
+               * served out of its own SQLite cache — from here the two are
+               * one call. The split is recoverable anyway: only a download
+               * observes `omfg_tile_download_duration_seconds`, so the two
+               * counts side by side give the cache hit rate.
+               */
+              observeTileProcessed('fetched');
               counters.incrementDone();
             } else {
+              observeTileProcessed('failed');
               counters.incrementFailed();
             }
           } catch (error) {
@@ -164,6 +176,7 @@ export default class DownloadJob {
               `Failed getting tile ${td.toString()}`,
               error instanceof Error ? error.message : error,
             );
+            observeTileProcessed('failed');
             counters.incrementFailed();
           } finally {
             const newPercent = counters.percent;

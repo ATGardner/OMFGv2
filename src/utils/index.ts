@@ -12,12 +12,26 @@ import LatLon from 'geodesy/latlon-ellipsoidal-vincenty.js';
 import type {Feature, FeatureCollection, Geometry, Position} from 'geojson';
 import JSZip from 'jszip';
 import PQueue from 'p-queue';
+import {
+  observeTileBytes,
+  observeTileDownload,
+  observeTileRetry,
+  trackTileQueue,
+} from '../metrics.ts';
 import DownloadError from './DownloadError.ts';
 import {getLogger} from './logging.ts';
 import Tile from './Tile.ts';
 
 const logger = getLogger('utils/index.ts');
 const queue = new PQueue({concurrency: 10});
+
+/*
+ * The queue is the app's only throttle on a tile server, so its depth is the
+ * one number that says whether a slow job is us waiting on them or them
+ * waiting on us. Registered here rather than in metrics.ts so the queue stays
+ * private to this module.
+ */
+trackTileQueue(queue);
 
 /*
  * Spelled out rather than `GeoJSON<Geometry | null>`, whose union includes a
@@ -169,6 +183,7 @@ async function downloadTile(
    * Buffer as a blob, hence the wrap rather than a bare Uint8Array.
    */
   const data = Buffer.from(await response.arrayBuffer());
+  observeTileBytes(data.byteLength);
   return {data, lastCheck, etag: newEtag};
 }
 
@@ -201,7 +216,14 @@ export async function addDownload(
   retry = 0,
 ): Promise<DownloadResult> {
   try {
-    return await queue.add(() => downloadTile(address, etag));
+    /*
+     * Timed inside the queue task, not around it: a tile can sit behind nine
+     * others for a while, and a histogram that included that wait would say
+     * more about our concurrency limit than about the tile server.
+     */
+    return await queue.add(() =>
+      observeTileDownload(() => downloadTile(address, etag)),
+    );
   } catch (error) {
     const code = getErrorCode(error);
     const shouldRetry =
@@ -211,6 +233,7 @@ export async function addDownload(
         code === 'ETIMEDOUT' ||
         code === 503);
     if (shouldRetry && retry < 15) {
+      observeTileRetry();
       const timeout = 1000 * Math.min(2 ** retry, 60);
       await setTimeoutAsync(timeout);
       logger.warn(

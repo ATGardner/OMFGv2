@@ -65,6 +65,38 @@ ingress:
 # The app serves on 3000 and reads PORT from the environment.
 containerPort: 3000
 
+# Prometheus metrics, served on their own listener separate from the API —
+# `ingress` and `httpRoute` send every path to the `http` port, so a /metrics
+# route there would publish the server's internals along with the downloader.
+#
+# Off by default: nothing the app exports about itself is needed for it to
+# work, so this is opt-in like every other optional block in this chart.
+# Enabling it sets METRICS_ENABLED on the container, declares the port and
+# adds it to the Service.
+metrics:
+  enabled: false
+  # Read by the app as METRICS_PORT, and the port the Service exposes.
+  port: 9091
+  # Adds the prometheus.io/{scrape,path,port} pod annotations, for a Prometheus
+  # that discovers targets by annotation. The port is rendered from
+  # metrics.port above, so the two cannot drift.
+  #
+  # Also opt-in, and deliberately separate from `enabled`: exposing the port
+  # changes nothing on its own, but these annotations make a Prometheus this
+  # chart does not own start ingesting series and spending its storage. Worth
+  # asking for explicitly.
+  scrapeAnnotations: false
+  # For the Prometheus Operator instead. Needs the ServiceMonitor CRD, so it
+  # is off by default; enabling it without the CRD fails the install.
+  serviceMonitor:
+    enabled: false
+    # Empty means inherit the Prometheus instance's own defaults.
+    interval: ""
+    scrapeTimeout: ""
+    # Most operator deployments only select ServiceMonitors carrying a
+    # particular label — check `spec.serviceMonitorSelector` on your Prometheus.
+    labels: {}
+
 # The tile cache. Every tile the app downloads is written to a per-source
 # SQLite database under `cache/`, and re-used for a day before it is even
 # revalidated — so without a volume here, replacing the pod throws away the

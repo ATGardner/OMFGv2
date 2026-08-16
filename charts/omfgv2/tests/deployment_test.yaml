@@ -47,6 +47,81 @@ tests:
           path: spec.template.spec.containers[0].ports[0].containerPort
           value: 8080
 
+  # The app serves metrics unless METRICS_ENABLED says otherwise, so an unset
+  # variable here would leave a listener running on a port the chart never
+  # declared and the Service never exposed. That is why it is rendered either
+  # way rather than only when metrics are on.
+  - it: declares no metrics port by default and tells the app to stay quiet
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[1]
+          value:
+            name: METRICS_ENABLED
+            value: "false"
+      - lengthEqual:
+          path: spec.template.spec.containers[0].ports
+          count: 1
+      - notExists:
+          path: spec.template.metadata.annotations
+
+  - it: drives the metrics port and env vars from metrics.port when enabled
+    set:
+      metrics.enabled: true
+      metrics.port: 9099
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[1]
+          value:
+            name: METRICS_ENABLED
+            value: "true"
+      - equal:
+          path: spec.template.spec.containers[0].env[2]
+          value:
+            name: METRICS_PORT
+            value: "9099"
+      - equal:
+          path: spec.template.spec.containers[0].ports[1]
+          value:
+            name: metrics
+            containerPort: 9099
+            protocol: TCP
+
+  # Exposing the port and asking a Prometheus to scrape it are separate
+  # decisions, so the annotations must not ride along with metrics.enabled.
+  - it: adds no scrape annotations unless they are asked for
+    set:
+      metrics.enabled: true
+    asserts:
+      - notExists:
+          path: spec.template.metadata.annotations
+
+  # The annotation port is rendered from metrics.port, so a scrape aimed at a
+  # port nothing listens on is not a state this chart can reach.
+  - it: annotates the pod for scrape discovery alongside podAnnotations
+    set:
+      metrics.enabled: true
+      metrics.port: 9099
+      metrics.scrapeAnnotations: true
+      podAnnotations:
+        team: maps
+    asserts:
+      - equal:
+          path: spec.template.metadata.annotations
+          value:
+            team: maps
+            prometheus.io/scrape: "true"
+            prometheus.io/path: /metrics
+            prometheus.io/port: "9099"
+
+  # Annotations are pointless without a listener to point at, and the pod would
+  # otherwise advertise a port the container does not open.
+  - it: leaves scrape annotations off when metrics are disabled
+    set:
+      metrics.scrapeAnnotations: true
+    asserts:
+      - notExists:
+          path: spec.template.metadata.annotations
+
   - it: mounts no volume by default
     asserts:
       - notExists:

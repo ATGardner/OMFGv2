@@ -30,7 +30,10 @@ COPY --chown=omfg:omfg src /service/src/
 
 WORKDIR /service
 
-# The API. Documented here because the image serves it by default.
-EXPOSE 3000
+# 3000 is the API. 9091 serves /metrics on a separate listener, so that the
+# chart's Ingress and HTTPRoute — which route every path to 3000 — cannot
+# publish it. Documented here because the image serves both by default; the
+# chart opts out with METRICS_ENABLED unless metrics.enabled is set.
+EXPOSE 3000 9091
 
 CMD ["node", "index.ts"]
