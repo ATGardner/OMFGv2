@@ -105,16 +105,38 @@ tests:
       - notExists:
           path: spec.selector.matchLabels["tier"]
 
-  - it: omits the security context when empty
-    asserts:
-      - notExists:
-          path: spec.template.spec.securityContext
-
-  - it: sets an fsGroup when one is given
-    set:
-      podSecurityContext:
-        fsGroup: 10001
+  # The image runs as uid/gid 10001, so a volume the kubelet leaves owned by
+  # root is unwritable and the first tile write fails. The GID here and the one
+  # the Dockerfile pins have to stay in step.
+  - it: defaults to an fsGroup matching the image's user
     asserts:
       - equal:
           path: spec.template.spec.securityContext.fsGroup
           value: 10001
+      - equal:
+          path: spec.template.spec.securityContext.fsGroupChangePolicy
+          value: OnRootMismatch
+
+  # `null`, not `{}`. Helm merges values rather than replacing them, so an
+  # empty map leaves the defaults above in place and only an explicit null
+  # drops the block — worth pinning, because the `{}` that looks like it should
+  # work silently does nothing.
+  - it: omits the security context when explicitly nulled
+    set:
+      podSecurityContext: null
+    asserts:
+      - notExists:
+          path: spec.template.spec.securityContext
+
+  - it: allows the security context to be replaced
+    set:
+      podSecurityContext:
+        fsGroup: 2000
+        runAsNonRoot: true
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 2000
+      - equal:
+          path: spec.template.spec.securityContext.runAsNonRoot
+          value: true

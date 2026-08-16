@@ -89,6 +89,15 @@ persistence:
   # Tiles are 5-15KB each and a job covers thousands of them across the zoom
   # range, so this fills faster than a log volume would. Nothing prunes it.
   size: 5Gi
+  # The claim survives upgrades and pod restarts on its own — it is named after
+  # the release and nothing re-provisions it. `helm uninstall` does delete it,
+  # and the annotation below is what prevents that.
+  #
+  # Not on by default, because a kept claim then collides with a later
+  # `helm install` of the same release name: Helm tries to create a PVC that is
+  # already there and fails the whole install. Turn it on if losing the cache
+  # to an uninstall matters more than that, and delete the claim by hand when
+  # you really mean to.
   annotations: {}
   #  helm.sh/resource-policy: keep
   # Must match where the app actually writes. Cache paths are built as a
@@ -97,12 +106,21 @@ persistence:
   # to, and the cache silently stays ephemeral.
   mountPath: /service/cache
 
-# Empty by default, unlike the OSMExport chart this is modelled on. That image
-# creates an unprivileged user and so needs an fsGroup to make a freshly
-# provisioned volume writable; docker/prod.dockerfile here still runs as root,
-# which can already write a root-owned volume root. Set an fsGroup here the
-# moment that image grows a USER, or the cache mount becomes unwritable.
-podSecurityContext: {}
+# A freshly provisioned volume is owned by root, but the image runs as the
+# unprivileged omfg user, so without a matching fsGroup the kubelet leaves the
+# volume root unwritable and the very first tile write fails. This defaults to
+# the GID the Dockerfile pins; the two have to agree, which is why that RUN
+# line hard-codes 10001 rather than letting adduser pick.
+#
+# `OnRootMismatch` is what keeps that cheap. The default, `Always`, makes the
+# kubelet recursively chown every file on the volume at each pod start — on a
+# tile cache holding hundreds of thousands of files that turns a restart into
+# minutes of disk churn. `OnRootMismatch` only walks the tree when the volume
+# root's ownership is already wrong, so it costs nothing after the first
+# mount.
+podSecurityContext:
+  fsGroup: 10001
+  fsGroupChangePolicy: OnRootMismatch
 
 resources: {}
 

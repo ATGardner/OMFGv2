@@ -72,7 +72,8 @@ persistence:
 
 podSecurityContext:
   fsGroup: 10001
-  runAsNonRoot: false
+  fsGroupChangePolicy: OnRootMismatch
+  runAsNonRoot: true
 
 resources:
   limits:
