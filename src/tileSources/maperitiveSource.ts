@@ -39,7 +39,7 @@ export default class MaperitiveSource extends FSSource {
     return this.Name;
   }
 
-  override async getTileData(tile: Tile): Promise<Buffer | undefined> {
+  override async getTileData(tile: Tile): Promise<Uint8Array | undefined> {
     const data = this.readTile(tile);
     if (data) {
       return data;

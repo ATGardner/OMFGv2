@@ -1,22 +1,31 @@
+import {DatabaseSync, type StatementSync} from 'node:sqlite';
 import {join} from 'path';
 import {ensurePath} from '../utils/index.ts';
-import Database, {type Statement} from '../utils/sqlite3-async.ts';
 import type Tile from '../utils/Tile.ts';
+import WriteBatch from '../utils/WriteBatch.ts';
 
 export interface CachedTile {
-  data: Buffer;
+  data: Uint8Array;
   lastCheck: Date;
   etag: string;
 }
 
-interface TileRow {
-  data: Buffer;
-  last_check: string;
-  etag: string;
+/*
+ * The column holds the response's `Date` header verbatim in the normal path,
+ * and epoch milliseconds when a Date is handed in — which is exactly what the
+ * `sqlite3` package wrote for a Date binding, so caches written before the
+ * move to node:sqlite still read back through `new Date`. The conversion lives
+ * here because node:sqlite refuses a Date outright, and this is the one column
+ * that takes one.
+ */
+function toStoredDate(lastCheck: Date | string | null): string | number | null {
+  return lastCheck instanceof Date ? lastCheck.getTime() : lastCheck;
 }
 
 export default class Cache {
-  private readonly db: Database;
+  private readonly db: DatabaseSync;
+
+  private readonly batch: WriteBatch;
 
   /*
    * Only meaningful for a file-backed cache: a database that did not exist a
@@ -26,92 +35,102 @@ export default class Cache {
   private readonly newCache: boolean;
 
   /*
-   * Prepared in `init()` rather than the constructor, because preparing a
-   * statement needs the database open. Every caller awaits `init()` first.
+   * Prepared in `init()` rather than the constructor, because the tables have
+   * to exist first. Every caller calls `init()` before its first lookup.
    */
-  private insertStatement!: Statement;
+  private insertStatement!: StatementSync;
 
-  private updateLastCheckStatement!: Statement;
+  private updateLastCheckStatement!: StatementSync;
 
-  private selectStatement!: Statement;
+  private selectStatement!: StatementSync;
 
   constructor(fileName?: string) {
     if (fileName) {
       const path = join('cache', fileName);
       this.newCache = !ensurePath(path);
-      this.db = new Database(path);
+      this.db = new DatabaseSync(path);
     } else {
       this.newCache = false;
-      this.db = new Database();
+      this.db = new DatabaseSync(':memory:');
     }
+
+    this.batch = new WriteBatch(this.db);
   }
 
-  async init(): Promise<void> {
-    await this.db.init();
-    await this.db.run(
+  init(): void {
+    this.db.exec(
       'CREATE TABLE IF NOT EXISTS tiles (x integer, y integer, z integer, data blob, last_check DATETIME, etag text, PRIMARY KEY (x, y, z));',
     );
-    await this.db.run('CREATE INDEX IF NOT EXISTS IND on tiles (x, y, z);');
-    this.insertStatement = await this.db.prepare(
+    this.db.exec('CREATE INDEX IF NOT EXISTS IND on tiles (x, y, z);');
+    this.insertStatement = this.db.prepare(
       'INSERT or REPLACE INTO tiles (x, y, z, data, last_check, etag) VALUES ($x, $y, $z, $data, $last_check, $etag);',
     );
-    this.updateLastCheckStatement = await this.db.prepare(
+    this.updateLastCheckStatement = this.db.prepare(
       'UPDATE tiles SET last_check = $last_check where x = $x AND y = $y AND z = $z;',
     );
-    this.selectStatement = await this.db.prepare(
+    this.selectStatement = this.db.prepare(
       'SELECT data, last_check, etag FROM tiles WHERE x = $x AND y = $y AND z = $z;',
     );
   }
 
   addTile(
     tile: Tile,
-    data: Buffer | undefined,
+    data: Uint8Array | undefined,
     lastCheck: Date | string | null,
     etag?: string | null,
-  ): Promise<void> {
-    return this.insertStatement.run({
-      $x: tile.x,
-      $y: tile.y,
-      $z: tile.zoom,
-      $data: data,
-      $last_check: lastCheck,
-      $etag: etag,
+  ): void {
+    this.batch.write(() => {
+      this.insertStatement.run({
+        $x: tile.x,
+        $y: tile.y,
+        $z: tile.zoom,
+        // `?? null` throughout: null binds, undefined is rejected
+        $data: data ?? null,
+        $last_check: toStoredDate(lastCheck),
+        $etag: etag ?? null,
+      });
     });
   }
 
-  updateLastCheck(tile: Tile, lastCheck: Date | string | null): Promise<void> {
-    return this.updateLastCheckStatement.run({
-      $last_check: lastCheck,
-      $x: tile.x,
-      $y: tile.y,
-      $z: tile.zoom,
+  updateLastCheck(tile: Tile, lastCheck: Date | string | null): void {
+    this.batch.write(() => {
+      this.updateLastCheckStatement.run({
+        $last_check: toStoredDate(lastCheck),
+        $x: tile.x,
+        $y: tile.y,
+        $z: tile.zoom,
+      });
     });
   }
 
-  async getTile(tile: Tile): Promise<CachedTile | undefined> {
+  getTile(tile: Tile): CachedTile | undefined {
     if (this.newCache) {
       return undefined;
     }
 
-    const row = await this.selectStatement.get<TileRow>({
+    /*
+     * Reads run on the same connection as the open batch, so they see its
+     * uncommitted writes — a tile stored earlier in this job is found even
+     * though its transaction has not been committed yet.
+     */
+    const row = this.selectStatement.get({
       $x: tile.x,
       $y: tile.y,
       $z: tile.zoom,
     });
-    if (row) {
-      return {
-        data: row.data,
-        lastCheck: new Date(row.last_check),
-        etag: row.etag,
-      };
+    if (!row) {
+      return undefined;
     }
 
-    return undefined;
+    return {
+      data: row.data as Uint8Array,
+      lastCheck: new Date(row.last_check as string | number),
+      etag: row.etag as string,
+    };
   }
 
-  async close(): Promise<void> {
-    await this.insertStatement.finalize();
-    await this.selectStatement.finalize();
-    await this.db.close();
+  close(): void {
+    this.batch.flush();
+    this.db.close();
   }
 }

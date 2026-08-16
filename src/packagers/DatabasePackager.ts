@@ -1,8 +1,9 @@
+import {DatabaseSync} from 'node:sqlite';
 import {EOL} from 'os';
-import type {Packager} from '../types.ts';
+import type {Packager, TileSource} from '../types.ts';
 import {ensurePath, zip} from '../utils/index.ts';
-import Database from '../utils/sqlite3-async.ts';
 import type Tile from '../utils/Tile.ts';
+import WriteBatch from '../utils/WriteBatch.ts';
 
 const COPYRIGHT = `Created using OMFG (https://github.com/ATGardner/OMFGv2)${EOL}`;
 
@@ -15,12 +16,15 @@ export default abstract class DatabasePackager implements Packager {
    */
   protected readonly newFile: boolean;
 
-  protected readonly db: Database;
+  protected readonly db: DatabaseSync;
+
+  protected readonly batch: WriteBatch;
 
   constructor(fileName: string) {
     this.fileName = fileName;
     this.newFile = !ensurePath(fileName);
-    this.db = new Database(fileName);
+    this.db = new DatabaseSync(fileName);
+    this.batch = new WriteBatch(this.db);
   }
 
   get id(): string {
@@ -28,33 +32,31 @@ export default abstract class DatabasePackager implements Packager {
   }
 
   /*
-   * Takes no argument, though `Packager.init` is handed the tile source: only
-   * `MBTilesPackager` reads it, to copy the source's attribution and image
-   * format into its metadata table. A method declaring fewer parameters still
-   * satisfies the interface.
+   * `source` is only read by `MBTilesPackager`, which copies the tile source's
+   * attribution and image format into its metadata table.
    */
-  init(): Promise<void> {
-    return this.db.init();
-  }
+  abstract init(source?: TileSource): void;
 
-  abstract hasTile(tile: Tile): Promise<boolean>;
+  abstract hasTile(tile: Tile): boolean;
 
-  abstract addTile(tile: Tile, data: Buffer): Promise<void>;
+  abstract addTile(tile: Tile, data: Uint8Array): void;
 
   /*
    * The subclasses own the public two-argument `close` and call this with the
    * name of the format they wrote. It used to be `close` itself, taking
    * `type` ahead of the same two arguments, so the base class and its
-   * subclasses disagreed about what `close` means — the subclasses relayed
-   * `super.close('Orux', ...args)` and any caller holding a `DatabasePackager`
-   * got the wrong signature.
+   * subclasses disagreed about what `close` means.
+   *
+   * Still async, and the last part of the pipeline that is: `zip` is genuinely
+   * asynchronous, where every database call above it is not.
    */
   protected async closeDatabase(
     type: string,
     routeAttribution?: string,
     tileAttribution?: string,
   ): Promise<string> {
-    await this.db.close();
+    this.batch.flush();
+    this.db.close();
     const tiles = tileAttribution
       ? `Tiles Source: ${tileAttribution}${EOL}`
       : '';

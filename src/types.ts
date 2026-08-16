@@ -39,7 +39,9 @@ export interface TileSource {
 
   init(): void | Promise<void>;
 
-  getTileData(tile: Tile): Buffer | undefined | Promise<Buffer | undefined>;
+  getTileData(
+    tile: Tile,
+  ): Uint8Array | undefined | Promise<Uint8Array | undefined>;
 
   /*
    * Maperitive only: it shells out to a Windows binary that renders every
@@ -48,7 +50,7 @@ export interface TileSource {
    */
   generateAllTiles?(): void | Promise<void>;
 
-  close?(): Promise<void>;
+  close?(): void | Promise<void>;
 }
 
 export interface Packager {
@@ -60,15 +62,19 @@ export interface Packager {
    */
   readonly fileName: string | string[];
 
-  init(source: TileSource): Promise<void>;
+  /*
+   * Synchronous, all three: node:sqlite has no asynchronous API, so a promise
+   * here would only wrap an already-finished write.
+   */
+  init(source: TileSource): void;
 
-  hasTile(tile: Tile): Promise<boolean>;
+  hasTile(tile: Tile): boolean;
 
-  addTile(tile: Tile, data: Buffer): Promise<void>;
+  addTile(tile: Tile, data: Uint8Array): void;
 
   /*
-   * Resolves to the file written, or to one name per packager for
-   * `MultiPackager`.
+   * The exception, because `zip` really is asynchronous. Resolves to the file
+   * written, or to one name per packager for `MultiPackager`.
    */
   close(
     routeAttribution?: string,

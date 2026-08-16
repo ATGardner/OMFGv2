@@ -10,7 +10,7 @@ const DEFAULT_QUALITY = 50;
  * minus a dependency that cannot be installed.
  */
 export default async function pngToJpeg(
-  data: Buffer,
+  data: Uint8Array,
   quality = DEFAULT_QUALITY,
 ): Promise<Buffer> {
   const png = new PNG(data);

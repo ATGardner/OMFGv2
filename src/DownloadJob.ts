@@ -143,19 +143,18 @@ export default class DownloadJob {
       let percent = 0;
       const promises = [];
       await this.tileSource.init();
-      await this.packager.init(this.tileSource);
+      this.packager.init(this.tileSource);
       for (const td of tileDefinitions) {
         const tilePromise = (async () => {
           try {
-            const hasData = await this.packager.hasTile(td);
-            if (hasData) {
+            if (this.packager.hasTile(td)) {
               counters.incrementDone();
               return;
             }
 
             const data = await this.tileSource.getTileData(td);
             if (data) {
-              await this.packager.addTile(td, data);
+              this.packager.addTile(td, data);
               counters.incrementDone();
             } else {
               counters.incrementFailed();
@@ -183,6 +182,21 @@ export default class DownloadJob {
 
       await Promise.all(promises);
       this.counters = undefined;
+      /*
+       * Nothing closed the tile source before, which merely leaked its cache
+       * handle while every write was its own transaction. Now the last partial
+       * batch of cache entries is only committed here, so skipping it would
+       * silently re-download those tiles next run.
+       *
+       * Logged rather than thrown: the cache is an optimisation, and a job
+       * whose tiles all downloaded should still produce its output.
+       */
+      try {
+        await this.tileSource.close?.();
+      } catch (error) {
+        logger.warn('Failed closing the tile source cache', error);
+      }
+
       this.state.result = await this.packager.close(
         this.routeSource.routeAttribution,
         this.tileSource.attribution,

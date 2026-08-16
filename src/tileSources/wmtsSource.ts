@@ -32,29 +32,33 @@ export default class WMTSSource implements TileSource {
     return `WMTS_${this.Name}`;
   }
 
-  init(): Promise<void> {
-    return this.cache.init();
+  init(): void {
+    this.cache.init();
   }
 
-  async updateCache(
+  updateCache(
     tile: Tile,
-    data: Buffer | undefined,
+    data: Uint8Array | undefined,
     lastCheck: string | null,
     etag: string | null,
-  ): Promise<void> {
+  ): void {
     if (data) {
-      await this.cache.addTile(tile, data, lastCheck, etag);
+      this.cache.addTile(tile, data, lastCheck, etag);
     } else {
-      await this.cache.updateLastCheck(tile, lastCheck);
+      this.cache.updateLastCheck(tile, lastCheck);
     }
   }
 
-  async getTileData(tile: Tile): Promise<Buffer | undefined> {
+  /*
+   * Still async, and for the reason that matters: the download. The cache
+   * lookups around it are synchronous.
+   */
+  async getTileData(tile: Tile): Promise<Uint8Array | undefined> {
     const {
       data: cachedData,
       lastCheck,
       etag,
-    }: Partial<CachedTile> = (await this.cache.getTile(tile)) ?? {};
+    }: Partial<CachedTile> = this.cache.getTile(tile) ?? {};
     // A tile checked within the last day is served from the cache untouched.
     if (lastCheck && moment().subtract(1, 'day').isBefore(lastCheck)) {
       return cachedData;
@@ -67,7 +71,7 @@ export default class WMTSSource implements TileSource {
         lastCheck: newLastCheck,
         etag: newEtag,
       } = await addDownload(address, etag);
-      await this.updateCache(tile, data, newLastCheck, newEtag);
+      this.updateCache(tile, data, newLastCheck, newEtag);
       return data ?? cachedData;
     } catch (error) {
       if (cachedData) {
@@ -78,7 +82,7 @@ export default class WMTSSource implements TileSource {
     }
   }
 
-  close(): Promise<void> {
-    return this.cache.close();
+  close(): void {
+    this.cache.close();
   }
 }

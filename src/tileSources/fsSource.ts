@@ -32,7 +32,9 @@ export default class FSSource implements TileSource {
     return existsSync(path) ? readFileSync(path) : undefined;
   }
 
-  getTileData(tile: Tile): Buffer | undefined | Promise<Buffer | undefined> {
+  getTileData(
+    tile: Tile,
+  ): Uint8Array | undefined | Promise<Uint8Array | undefined> {
     return this.readTile(tile);
   }
 }

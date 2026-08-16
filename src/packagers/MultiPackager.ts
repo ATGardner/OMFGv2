@@ -19,8 +19,10 @@ export default class MultiPackager implements Packager {
     return this.packagers.flatMap((p) => p.fileName);
   }
 
-  async init(source: TileSource): Promise<void> {
-    await Promise.all(this.packagers.map((p) => p.init(source)));
+  init(source: TileSource): void {
+    for (const packager of this.packagers) {
+      packager.init(source);
+    }
   }
 
   /*
@@ -28,14 +30,20 @@ export default class MultiPackager implements Packager {
    * missing from one is missing from all — and answering "yes" from any one of
    * them would skip the download the others still need.
    */
-  hasTile(tile: Tile): Promise<boolean> {
+  hasTile(tile: Tile): boolean {
     return this.packagers[0].hasTile(tile);
   }
 
-  async addTile(tile: Tile, data: Buffer): Promise<void> {
-    await Promise.all(this.packagers.map((p) => p.addTile(tile, data)));
+  addTile(tile: Tile, data: Uint8Array): void {
+    for (const packager of this.packagers) {
+      packager.addTile(tile, data);
+    }
   }
 
+  /*
+   * The one method still worth running in parallel: each packager finishes by
+   * zipping its database, which is genuinely asynchronous.
+   */
   async close(
     routeAttribution?: string,
     tileAttribution?: string,
