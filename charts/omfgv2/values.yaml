@@ -105,6 +105,24 @@ metrics:
     # Most operator deployments only select ServiceMonitors carrying a
     # particular label — check `spec.serviceMonitorSelector` on your Prometheus.
     labels: {}
+  # Ships a Grafana dashboard for the series above, as a ConfigMap for the
+  # Grafana sidecar to pick up. Needs no CRD and nothing installed in this
+  # namespace — but it produces an object that a Grafana this chart does not
+  # own will act on, so it is opt-in like `scrapeAnnotations`.
+  #
+  # Without the sidecar the ConfigMap is inert. Import
+  # `dashboards/omfgv2.json` from the chart source by hand in that case; the
+  # dashboard picks its Prometheus from a datasource variable either way.
+  dashboard:
+    enabled: false
+    # What the sidecar selects on. The grafana chart's default is
+    # `grafana_dashboard: "1"`, but both halves are configurable there — check
+    # `sidecar.dashboards.label` and `.labelValue` on your Grafana.
+    label: grafana_dashboard
+    labelValue: "1"
+    # Grafana folder to file the dashboard under, for a sidecar running in
+    # folder-annotation mode. Empty leaves it to the sidecar's default folder.
+    folder: ""
 
 # The tile cache. Every tile the app downloads is written to a per-source
 # SQLite database under `cache/`, and re-used for a day before it is even
