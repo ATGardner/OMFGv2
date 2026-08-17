@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/ATGardner/OMFGv2/compare/v2.1.0...v2.2.0) (2026-08-17)
+
+
+### Features
+
+* **chart:** add a Grafana dashboard for the exported metrics ([#593](https://github.com/ATGardner/OMFGv2/issues/593)) ([b34bc97](https://github.com/ATGardner/OMFGv2/commit/b34bc974265fb2c9170fd392989ab1e81eff5a5a))
+
 ## [2.1.0](https://github.com/ATGardner/OMFGv2/compare/v2.0.1...v2.1.0) (2026-08-17)
 
 
