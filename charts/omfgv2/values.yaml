@@ -183,9 +183,8 @@ podSecurityContext:
 
 resources: {}
 
-# `/blah` returns a timestamp and is the closest thing to a health endpoint,
-# but it is not one by contract, so both probes check the listening socket
-# instead. Note that a download job runs on the same event loop as these:
+# The app exposes no health endpoint, so both probes check the listening
+# socket instead. Note that a download job runs on the same event loop as these:
 # tile writes are synchronous SQLite calls, so keep the timeouts slack.
 livenessProbe:
   tcpSocket:

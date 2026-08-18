@@ -35,16 +35,6 @@ app.get('/queue/:id', ({params: {id}}, res) => {
   res.status(code).send({status, result});
 });
 
-app.get('/blah', (req, res) => {
-  const result = new Date().toISOString();
-  /*
-   * Same reason as the tile failure in DownloadJob: a trailing string argument
-   * is dropped by winston, so the timestamp only appears if it is the message.
-   */
-  logger.verbose(`Got blah ${result}`);
-  res.send(result);
-});
-
 app.use(errorLogger);
 
 const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
@@ -61,7 +51,6 @@ app.use(errorHandler);
 const port = process.env.PORT ?? 3000;
 app.listen(port, () => {
   logger.info(`OMFG listening on port ${port}!`);
-  process.send?.('ready');
 });
 
 startMetricsServer();

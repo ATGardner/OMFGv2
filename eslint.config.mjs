@@ -27,11 +27,7 @@ export default tseslint.config(
          * against an inferred default project instead.
          */
         projectService: {
-          allowDefaultProject: [
-            'eslint.config.mjs',
-            'prettier.config.cjs',
-            'process.config.cjs',
-          ],
+          allowDefaultProject: ['eslint.config.mjs', 'prettier.config.cjs'],
         },
         tsconfigRootDir: import.meta.dirname,
       },
