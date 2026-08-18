@@ -1,7 +1,7 @@
 import type {FeatureCollection, Geometry} from 'geojson';
 import osmtogeojson from 'osmtogeojson';
+import {fetchRelation} from '../osm/osmApi.ts';
 import type {RouteSource} from '../types.ts';
-import {overpassQuery} from '../utils/index.ts';
 
 export default class OSMRelationSource implements RouteSource {
   private readonly relationId: number;
@@ -18,9 +18,7 @@ export default class OSMRelationSource implements RouteSource {
   }
 
   async getGeoJson(): Promise<FeatureCollection<Geometry | null>> {
-    const osmJson = await overpassQuery(
-      `relation(${this.relationId});(._;>;);out body meta;`,
-    );
+    const osmJson = await fetchRelation(this.relationId);
     return osmtogeojson(osmJson);
   }
 

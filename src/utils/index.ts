@@ -269,25 +269,6 @@ export function ensurePath(fileName: string): boolean {
   return false;
 }
 
-export async function overpassQuery(query: string): Promise<unknown> {
-  const body = `[out:json][timeout:25];${query}`;
-  const result = await fetch('http://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    body,
-    /*
-     * Not optional: Overpass answers a request with no User-Agent with a bare
-     * `406 Not Acceptable`, which reads like a rejected query rather than a
-     * rejected client. Node's fetch sends none unless asked.
-     */
-    headers: {'User-Agent': userAgent},
-  });
-  if (!result.ok) {
-    throw new Error(`${result.status}`);
-  }
-
-  return result.json();
-}
-
 export async function zip(
   fileName: string,
   copyright: string,

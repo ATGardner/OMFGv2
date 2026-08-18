@@ -36,7 +36,7 @@ describe('User agent', () => {
   /*
    * The version half comes from package.json, so asserting the exact string
    * would only assert that two imports of the same file agree. The shape is
-   * what matters: Overpass wants something it can attribute, and release-please
+   * what matters: OSM wants something it can attribute, and release-please
    * moves the number without touching this test.
    */
   it('identifies the app and its version', () => {
@@ -44,8 +44,9 @@ describe('User agent', () => {
   });
 
   /*
-   * Node's fetch sends no User-Agent unless one is passed, which is what got
-   * Overpass to answer 406 and is what the OSM tile policy asks for.
+   * Node's fetch sends no User-Agent unless one is passed, which is what the
+   * OSM tile usage policy asks for — and what got Overpass, before it was
+   * dropped, to answer 406.
    */
   it('is sent on tile downloads', async () => {
     assert.equal(await capturedUserAgent(), userAgent);
