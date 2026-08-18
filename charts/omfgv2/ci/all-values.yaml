@@ -82,13 +82,22 @@ ingress:
 # run this app — see the note in values.yaml — it is here to reach the RWX
 # branch and the Recreate-strategy block in one render.
 persistence:
-  enabled: true
-  storageClass: fast
-  accessModes:
-    - ReadWriteMany
-  size: 10Gi
-  annotations:
-    helm.sh/resource-policy: keep
+  cache:
+    enabled: true
+    storageClass: fast
+    accessModes:
+      - ReadWriteMany
+    size: 10Gi
+    annotations:
+      helm.sh/resource-policy: keep
+  output:
+    enabled: true
+    storageClass: fast
+    accessModes:
+      - ReadWriteMany
+    size: 5Gi
+    annotations:
+      helm.sh/resource-policy: keep
 
 podSecurityContext:
   fsGroup: 10001

@@ -1,3 +1,5 @@
+{{- $volumes := dict "cache" .Values.persistence.cache "output" .Values.persistence.output }}
+{{- $persistent := or .Values.persistence.cache.enabled .Values.persistence.output.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -7,18 +9,18 @@ metadata:
     {{- include "omfgv2.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
-  {{- if .Values.persistence.enabled }}
+  {{- if $persistent }}
   {{/*
   A ReadWriteOnce volume can only be attached to one node, and the default
   RollingUpdate keeps the old pod running while the new one starts — so an
   upgrade deadlocks, the new pod Pending on a volume the outgoing pod still
   holds. Recreate takes the brief downtime instead, which for a single-replica
-  batch downloader costs nothing.
+  batch downloader costs nothing. Either volume is enough to need it.
 
-  The volume itself is untouched either way: the claim is named after the
-  release and neither an upgrade nor a pod restart re-provisions it, so the
-  tile cache survives both. Only `helm uninstall` removes it — see the
-  resource-policy note in values.yaml.
+  The volumes themselves are untouched either way: the claims are named after
+  the release and neither an upgrade nor a pod restart re-provisions them, so
+  the tile cache and any undownloaded output survive both. Only
+  `helm uninstall` removes them — see the resource-policy note in values.yaml.
   */}}
   strategy:
     type: Recreate
@@ -92,16 +94,24 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.persistence.enabled }}
+          {{- if $persistent }}
           volumeMounts:
-            - name: cache
-              mountPath: {{ .Values.persistence.mountPath }}
+            {{- range $name, $volume := $volumes }}
+            {{- if $volume.enabled }}
+            - name: {{ $name }}
+              mountPath: {{ $volume.mountPath }}
+            {{- end }}
+            {{- end }}
           {{- end }}
-      {{- if .Values.persistence.enabled }}
+      {{- if $persistent }}
       volumes:
-        - name: cache
+        {{- range $name, $volume := $volumes }}
+        {{- if $volume.enabled }}
+        - name: {{ $name }}
           persistentVolumeClaim:
-            claimName: {{ .Values.persistence.existingClaim | default (include "omfgv2.fullname" .) }}
+            claimName: {{ $volume.existingClaim | default (include "omfgv2.claimName" (dict "root" $ "name" $name)) }}
+        {{- end }}
+        {{- end }}
       {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:

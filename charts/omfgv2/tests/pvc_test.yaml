@@ -1,8 +1,10 @@
 ---
-# The storageClass encoding is the trap here. "" and "-" mean opposite things
-# to Kubernetes — omitted takes the cluster default, empty string disables
-# dynamic provisioning — and both render as valid YAML, so a chart that mixes
-# them up installs cleanly and binds the wrong volume.
+# Two traps here. The storageClass encoding: "" and "-" mean opposite things to
+# Kubernetes — omitted takes the cluster default, empty string disables dynamic
+# provisioning — and both render as valid YAML, so a chart that mixes them up
+# installs cleanly and binds the wrong volume. And the claim names: the cache
+# keeps the bare fullname it has always had, because renaming it would leave the
+# volume of every existing install bound to nothing.
 suite: persistent volume claim
 templates:
   - pvc.yaml
@@ -14,9 +16,9 @@ tests:
       - hasDocuments:
           count: 0
 
-  - it: creates a claim when persistence is enabled
+  - it: creates the cache claim under the bare fullname
     set:
-      persistence.enabled: true
+      persistence.cache.enabled: true
     asserts:
       - hasDocuments:
           count: 1
@@ -33,17 +35,48 @@ tests:
           path: spec.resources.requests.storage
           value: 5Gi
 
+  # Suffixed, and provisioned on its own: enabling one volume says nothing
+  # about the other.
+  - it: creates the output claim under a suffixed name
+    set:
+      persistence.output.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: test-release-omfgv2-output
+      - equal:
+          path: spec.resources.requests.storage
+          value: 2Gi
+
+  - it: creates both claims when both are enabled
+    set:
+      persistence.cache.enabled: true
+      persistence.output.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: test-release-omfgv2
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: test-release-omfgv2-output
+        documentIndex: 1
+
   - it: omits storageClassName so the cluster default applies
     set:
-      persistence.enabled: true
+      persistence.cache.enabled: true
     asserts:
       - notExists:
           path: spec.storageClassName
 
   - it: names an explicit storage class
     set:
-      persistence.enabled: true
-      persistence.storageClass: fast
+      persistence.cache.enabled: true
+      persistence.cache.storageClass: fast
     asserts:
       - equal:
           path: spec.storageClassName
@@ -51,8 +84,8 @@ tests:
 
   - it: maps "-" to the empty string, disabling dynamic provisioning
     set:
-      persistence.enabled: true
-      persistence.storageClass: "-"
+      persistence.cache.enabled: true
+      persistence.cache.storageClass: "-"
     asserts:
       - equal:
           path: spec.storageClassName
@@ -62,25 +95,46 @@ tests:
   # too would leave an orphan PVC nothing mounts.
   - it: provisions nothing when an existing claim is named
     set:
-      persistence.enabled: true
-      persistence.existingClaim: my-cache
+      persistence.cache.enabled: true
+      persistence.cache.existingClaim: my-cache
     asserts:
       - hasDocuments:
           count: 0
 
+  - it: still provisions the other volume alongside an existing claim
+    set:
+      persistence.cache.enabled: true
+      persistence.cache.existingClaim: my-cache
+      persistence.output.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: metadata.name
+          value: test-release-omfgv2-output
+
   - it: refuses a ReadWriteOnce claim with more than one replica
     set:
-      persistence.enabled: true
+      persistence.cache.enabled: true
       replicaCount: 2
     asserts:
       - failedTemplate:
-          errorMessage: persistence.accessModes must include ReadWriteMany when replicaCount > 1
+          errorMessage: persistence.cache.accessModes must include ReadWriteMany when replicaCount > 1
+
+  # Named per volume, because that is the key the reader has to go and fix.
+  - it: names the output volume in its own guard
+    set:
+      persistence.output.enabled: true
+      replicaCount: 2
+    asserts:
+      - failedTemplate:
+          errorMessage: persistence.output.accessModes must include ReadWriteMany when replicaCount > 1
 
   - it: allows more than one replica against ReadWriteMany
     set:
-      persistence.enabled: true
+      persistence.cache.enabled: true
       replicaCount: 2
-      persistence.accessModes:
+      persistence.cache.accessModes:
         - ReadWriteMany
     asserts:
       - hasDocuments:
@@ -90,8 +144,8 @@ tests:
   # access modes live on that object, so the values here say nothing.
   - it: does not second-guess an existing claim's access modes
     set:
-      persistence.enabled: true
-      persistence.existingClaim: my-cache
+      persistence.cache.enabled: true
+      persistence.cache.existingClaim: my-cache
       replicaCount: 2
     asserts:
       - hasDocuments:

@@ -42,3 +42,18 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- define "omfgv2.image" -}}
 {{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) }}
 {{- end }}
+
+{{/*
+The claim name for one of the two volumes, given a dict of `root` and `name`.
+The cache keeps the bare fullname it has carried since the chart's first
+release: renaming it would leave the existing PVC bound to nothing and quietly
+start again on an empty volume, so only the newer output claim takes a suffix.
+*/}}
+{{- define "omfgv2.claimName" -}}
+{{- $fullname := include "omfgv2.fullname" .root }}
+{{- if eq .name "cache" }}
+{{- $fullname }}
+{{- else }}
+{{- printf "%s-%s" $fullname .name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}

@@ -40,6 +40,7 @@
     "@tmcw/togeojson": "7.1.2",
     "@xmldom/xmldom": "0.9.11",
     "express": "5.2.1",
+    "express-rate-limit": "8.6.2",
     "geodesy": "2.4.0",
     "jpeg-js": "0.4.4",
     "jszip": "3.10.1",

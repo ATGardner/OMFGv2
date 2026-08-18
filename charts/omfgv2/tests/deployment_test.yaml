@@ -1,7 +1,7 @@
 ---
-# The cache mount is the point of this chart, and every way of getting it wrong
-# still renders valid YAML: a volume with no mount, a mount at a path the app
-# never writes to, or a rolling update that deadlocks on the volume.
+# The two mounts are the point of this chart, and every way of getting them
+# wrong still renders valid YAML: a volume with no mount, a mount at a path the
+# app never writes to, or a rolling update that deadlocks on the volume.
 suite: deployment
 templates:
   - deployment.yaml
@@ -147,10 +147,16 @@ tests:
       - notExists:
           path: spec.template.spec.containers[0].volumeMounts
 
+  # The paths are a contract with the app, which builds both relative to the
+  # image's WORKDIR: `cache/<source>` for tiles and `output/` for the packaged
+  # zip that GET /output/:file then serves.
   - it: mounts the cache claim it provisions
     set:
-      persistence.enabled: true
+      persistence.cache.enabled: true
     asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 1
       - equal:
           path: spec.template.spec.containers[0].volumeMounts[0]
           value:
@@ -160,10 +166,44 @@ tests:
           path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
           value: test-release-omfgv2
 
+  # Independently of the cache: a deployment that keeps its tile cache but
+  # loses a finished zip on every restart is the case this volume exists for.
+  - it: mounts the output claim on its own
+    set:
+      persistence.output.enabled: true
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers[0].volumeMounts
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0]
+          value:
+            name: output
+            mountPath: /service/output
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: test-release-omfgv2-output
+
+  - it: mounts both volumes when both are enabled
+    set:
+      persistence.cache.enabled: true
+      persistence.output.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: cache
+              mountPath: /service/cache
+            - name: output
+              mountPath: /service/output
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: output
+
   - it: mounts an existing claim by name
     set:
-      persistence.enabled: true
-      persistence.existingClaim: my-cache
+      persistence.cache.enabled: true
+      persistence.cache.existingClaim: my-cache
     asserts:
       - equal:
           path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
@@ -173,7 +213,15 @@ tests:
   # attach while the outgoing one still holds it.
   - it: switches to Recreate when a volume is mounted
     set:
-      persistence.enabled: true
+      persistence.cache.enabled: true
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+
+  - it: switches to Recreate for the output volume too
+    set:
+      persistence.output.enabled: true
     asserts:
       - equal:
           path: spec.strategy.type
