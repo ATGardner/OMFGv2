@@ -95,4 +95,12 @@ export interface JobState {
   status: string;
   result?: unknown;
   code?: number;
+
+  /*
+   * Epoch milliseconds, written once the job reaches Done or Failed. Absent
+   * for as long as it runs, which is the whole of what keeps retention from
+   * collecting a job that is still writing its output — a live job simply
+   * fails the comparison, with no special case for it anywhere.
+   */
+  finishedAt?: number;
 }
