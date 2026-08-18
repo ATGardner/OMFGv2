@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.0](https://github.com/ATGardner/OMFGv2/compare/v2.2.0...v2.3.0) (2026-08-18)
+
+
+### Features
+
+* add /healthz and /readyz probes, and drop the pm2 leftovers ([#595](https://github.com/ATGardner/OMFGv2/issues/595)) ([826c3f8](https://github.com/ATGardner/OMFGv2/commit/826c3f8f6da0ab5d1823e4290e20872099712bb9))
+* fetch relations from the OSM API instead of Overpass ([#598](https://github.com/ATGardner/OMFGv2/issues/598)) ([ca21b55](https://github.com/ATGardner/OMFGv2/commit/ca21b5584f04a3e415cc0c68d092719dcecdd891))
+
 ## [2.2.0](https://github.com/ATGardner/OMFGv2/compare/v2.1.0...v2.2.0) (2026-08-17)
 
 
