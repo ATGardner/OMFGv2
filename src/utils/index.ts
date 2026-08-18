@@ -18,6 +18,7 @@ import {
   observeTileRetry,
   trackTileQueue,
 } from '../metrics.ts';
+import {userAgent} from '../userAgent.ts';
 import DownloadError from './DownloadError.ts';
 import {getLogger} from './logging.ts';
 import Tile from './Tile.ts';
@@ -160,7 +161,13 @@ async function downloadTile(
   address: string,
   etag?: string,
 ): Promise<DownloadResult> {
-  const headers: Record<string, string> = {};
+  /*
+   * The tile servers in sources.json are somebody else's bandwidth, and the
+   * OSM usage policy in particular asks for an agent it can identify and
+   * contact. Sent on every tile, not just the first: a server that rate limits
+   * anonymous traffic does it per request.
+   */
+  const headers: Record<string, string> = {'User-Agent': userAgent};
   if (etag) {
     headers['If-None-Match'] = etag;
   }
@@ -260,19 +267,6 @@ export function ensurePath(fileName: string): boolean {
 
   mkdirSync(path, {recursive: true});
   return false;
-}
-
-export async function overpassQuery(query: string): Promise<unknown> {
-  const body = `[out:json][timeout:25];${query}`;
-  const result = await fetch('http://overpass-api.de/api/interpreter', {
-    method: 'POST',
-    body,
-  });
-  if (!result.ok) {
-    throw new Error(`${result.status}`);
-  }
-
-  return result.json();
 }
 
 export async function zip(

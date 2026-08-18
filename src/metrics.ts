@@ -7,6 +7,7 @@ import {
   Registry,
   collectDefaultMetrics,
 } from 'prom-client';
+import {NotFoundError} from './errors.ts';
 import {getLogger} from './utils/logging.ts';
 
 const logger = getLogger('metrics');
@@ -98,6 +99,21 @@ const tileQueueDepth = new Gauge({
     tileQueueDepth.set({state: 'waiting'}, tileQueue.size);
     tileQueueDepth.set({state: 'running'}, tileQueue.pending);
   },
+});
+
+/*
+ * The route fetch is one request per job, and the only thing standing between
+ * a queued job and the first tile — so when a download seems to hang before
+ * anything is downloaded, this is the series that says whether OSM is the
+ * reason. Buckets stop at 60s: the API has no dispatcher queue to wait in, and
+ * anything slower than that is a failure in progress.
+ */
+const osmApiRequestDuration = new Histogram({
+  name: 'omfg_osm_api_request_duration_seconds',
+  help: 'Duration of outbound OSM API requests, by query kind and outcome',
+  labelNames: ['query', 'outcome'],
+  buckets: [0.25, 0.5, 1, 2.5, 5, 10, 20, 30, 60],
+  registers: [registry],
 });
 
 const jobDuration = new Histogram({
@@ -208,6 +224,26 @@ export function observeTileBytes(byteLength: number): void {
 
 export function observeTileRetry(): void {
   tileDownloadRetries.inc();
+}
+
+export async function observeOsmApiQuery<T>(
+  query: string,
+  run: () => Promise<T>,
+): Promise<T> {
+  const stop = osmApiRequestDuration.startTimer({query});
+  try {
+    const result = await run();
+    stop({outcome: 'success'});
+    return result;
+  } catch (error) {
+    /*
+     * A missing relation is someone mistyping an id, not the API failing, and
+     * folding the two together would let a bad relation id raise the upstream
+     * error rate that alerts hang off.
+     */
+    stop({outcome: error instanceof NotFoundError ? 'not_found' : 'error'});
+    throw error;
+  }
 }
 
 export function observeJobTiles(count: number): void {
