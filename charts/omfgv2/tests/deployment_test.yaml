@@ -233,3 +233,39 @@ tests:
       - equal:
           path: spec.template.spec.securityContext.runAsNonRoot
           value: true
+
+  # The paths are a contract with index.ts, and the port name with the ports
+  # block above — a probe pointing at a path the app does not serve fails
+  # closed, restarting a healthy pod on a loop.
+  - it: probes the app's health endpoints over HTTP
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet
+          value:
+            path: /healthz
+            port: http
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+          value:
+            path: /readyz
+            port: http
+
+  # A download job's synchronous SQLite writes share the event loop with these
+  # handlers, so the slack is the point: at 1s — the kubelet's default, which
+  # is what omitting timeoutSeconds would mean — a busy job would restart the
+  # pod it is running in.
+  - it: keeps the probe timeouts slack enough for a running job
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.timeoutSeconds
+          value: 5
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.failureThreshold
+          value: 3
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.timeoutSeconds
+          value: 5
+      - equal:
+          path:
+            spec.template.spec.containers[0].readinessProbe.failureThreshold
+          value: 3
