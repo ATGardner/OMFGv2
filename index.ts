@@ -1,7 +1,16 @@
 import express, {type ErrorRequestHandler} from 'express';
 import {getParser, toDownloadRequest} from './arguments.ts';
 import downloadManager from './src/DownloadManager.ts';
-import {metricsMiddleware, startMetricsServer} from './src/metrics.ts';
+import {
+  beginDraining,
+  createHealthRouter,
+  ensureDataDirs,
+} from './src/health.ts';
+import {
+  metricsMiddleware,
+  startMetricsServer,
+  stopMetricsServer,
+} from './src/metrics.ts';
 import {errorLogger, getLogger, requestLogger} from './src/utils/logging.ts';
 
 const logger = getLogger('index');
@@ -13,6 +22,15 @@ const app = express();
  * same middleware without the separate dependency.
  */
 app.use(express.json());
+
+/*
+ * Ahead of both middlewares below, unlike every other route: the kubelet
+ * probes these every few seconds for the life of the pod, so counting them
+ * would bury the API's own throughput under probe traffic in the request
+ * histogram, and logging them would cost a line every few seconds forever.
+ */
+app.use(createHealthRouter());
+
 app.use(requestLogger);
 // Ahead of the routes, so unmatched paths and error responses are counted too.
 app.use(metricsMiddleware);
@@ -48,12 +66,47 @@ const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
 
 app.use(errorHandler);
 
+/*
+ * Before the listener, so a volume the pod cannot write to is already failing
+ * readiness by the time the first probe arrives, rather than being discovered
+ * by a tile write an hour into a download.
+ */
+await ensureDataDirs();
+
 const port = process.env.PORT ?? 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   logger.info(`OMFG listening on port ${port}!`);
 });
 
 startMetricsServer();
+
+/*
+ * One readiness period at the chart's default, which is what the flag above
+ * needs to be seen: the kubelet keeps routing to this pod until its own probe
+ * fails and the endpoints controller catches up, so closing the listener the
+ * instant SIGTERM lands would refuse requests that were already on their way.
+ */
+const DRAIN_MS = 10_000;
+
+/*
+ * Nothing here calls process.exit. With both listeners closed an idle process
+ * runs out of handles and ends on its own, while one still running a download
+ * keeps going until the job finishes or the grace period expires — which is
+ * the better of the two outcomes for a job that has been fetching tiles for an
+ * hour.
+ */
+process.once('SIGTERM', () => {
+  logger.info('SIGTERM received, draining');
+  beginDraining();
+  setTimeout(() => {
+    server.close(() => {
+      logger.info('API listener closed');
+    });
+    // Keep-alive sockets sitting idle would otherwise hold `close` open.
+    server.closeIdleConnections();
+    stopMetricsServer();
+  }, DRAIN_MS).unref();
+});
 
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught Exception', error);

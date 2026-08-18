@@ -183,19 +183,41 @@ podSecurityContext:
 
 resources: {}
 
-# The app exposes no health endpoint, so both probes check the listening
-# socket instead. Note that a download job runs on the same event loop as these:
-# tile writes are synchronous SQLite calls, so keep the timeouts slack.
+# Real HTTP probes, which is what makes them depend on the event loop: the
+# tcpSocket probes these replace were answered by the kernel's accept queue and
+# passed even when nothing in the process could run. A download job's tile
+# writes are synchronous SQLite calls on that same loop, so the timeouts and
+# thresholds here are deliberately slack -- liveness needs roughly 75s of
+# unresponsiveness before it restarts the pod, and a restart takes the running
+# job with it.
+#
+# /healthz checks nothing but its own ability to answer, on purpose: a probe
+# that failed on an unwritable volume or an unreachable tile server would
+# restart a pod that a restart cannot fix.
 livenessProbe:
-  tcpSocket:
+  httpGet:
+    path: /healthz
     port: http
   initialDelaySeconds: 10
   periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+# /readyz additionally fails while the pod is draining after SIGTERM, and when
+# a data directory is not writable -- the fsGroup mistake described above then
+# shows up as a pod that never goes ready, instead of as a failed tile write an
+# hour into a download.
+#
+# Deliberately not tied to whether a job is running: this chart runs a single
+# replica, and going unready mid-job would pull it out of the Service and break
+# the `/queue/:id` polling of the very client waiting on that job.
 readinessProbe:
-  tcpSocket:
+  httpGet:
+    path: /readyz
     port: http
   initialDelaySeconds: 5
   periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
 
 nodeSelector: {}
 tolerations: []
