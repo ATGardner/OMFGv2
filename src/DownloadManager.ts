@@ -68,11 +68,14 @@ class DownloadManager {
       };
     }
 
+    /*
+     * A finished job stays in the table. Deleting it here made the first poll
+     * that saw `Done` the only one that ever would: every later poll 404s, and
+     * the file name that came with it — now the download URL — went with it,
+     * so a client that dropped the response, reloaded, or polled twice had no
+     * way back to its own output. Nothing prunes the table yet.
+     */
     const {code = 200, status, result}: JobState = job.state;
-    if (status === 'Done') {
-      this.jobs.delete(id);
-    }
-
     logger.info(`code: ${code}, status: ${status}, result: ${String(result)}`);
     return {code, status, result};
   }

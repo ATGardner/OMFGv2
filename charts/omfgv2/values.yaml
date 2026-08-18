@@ -4,7 +4,8 @@
 # process-local `downloading` flag, so a second replica does not share either:
 # a client that POSTs /downloadTiles to one pod and then polls /queue/<id> gets
 # a 404 from the other, and the "one download at a time" limit becomes one per
-# pod. The cache PVC below is ReadWriteOnce on top of that.
+# pod. The claims below are ReadWriteOnce on top of that, and the output one
+# is per-pod state besides: only the replica that ran a job holds its zip.
 replicaCount: 1
 
 image:
@@ -124,46 +125,73 @@ metrics:
     # folder-annotation mode. Empty leaves it to the sidecar's default folder.
     folder: ""
 
-# The tile cache. Every tile the app downloads is written to a per-source
-# SQLite database under `cache/`, and re-used for a day before it is even
-# revalidated — so without a volume here, replacing the pod throws away the
-# work and re-downloads every tile from the upstream tile server on the next
-# job. That is the one piece of state worth keeping, and it is why this block
-# exists; it is off by default only because a chart should not provision
-# storage nobody asked for.
+# Storage, one block per directory the app writes to. Both are off by default —
+# a chart should not provision storage nobody asked for — and both are
+# independent: enabling one says nothing about the other.
+#
+# The fields repeat, and mean the same thing in each block:
+#
+#   existingClaim  Bind a PVC you manage yourself. Every provisioning field is
+#                  then ignored and the chart creates no PVC of its own.
+#   storageClass   "" omits storageClassName entirely, so the cluster's default
+#                  class applies. A literal "-" sets it to the empty string,
+#                  which disables dynamic provisioning and binds a PV you
+#                  created by hand.
+#   accessModes    ReadWriteOnce is right for a single replica. Raising
+#                  replicaCount with a RWO claim leaves every pod after the
+#                  first stuck in Pending, so the chart refuses that
+#                  combination rather than letting it fail at schedule time.
+#   annotations    The claims survive upgrades and pod restarts on their own —
+#                  they are named after the release and nothing re-provisions
+#                  them. `helm uninstall` does delete them, and
+#                  `helm.sh/resource-policy: keep` is what prevents that. Not
+#                  set by default, because a kept claim then collides with a
+#                  later `helm install` of the same release name: Helm tries to
+#                  create a PVC that is already there and fails the whole
+#                  install. Turn it on if losing the volume to an uninstall
+#                  matters more than that, and delete the claim by hand when
+#                  you really mean to.
+#   mountPath      Must match where the app actually writes. Both paths are
+#                  built relative to the image's WORKDIR, /service, so moving
+#                  one mounts a volume nothing ever writes to and leaves that
+#                  directory silently ephemeral.
 persistence:
-  enabled: false
-  # Bind a PVC you manage yourself. Every provisioning field below is ignored
-  # when this is set, and the chart creates no PVC of its own.
-  existingClaim: ""
-  # "" omits storageClassName entirely, so the cluster's default class applies.
-  # A literal "-" sets it to the empty string, which disables dynamic
-  # provisioning and binds a PV you created by hand.
-  storageClass: ""
-  # ReadWriteOnce is right for a single replica. Raising replicaCount with a
-  # RWO claim leaves every pod after the first stuck in Pending, so the chart
-  # refuses that combination rather than letting it fail at schedule time.
-  accessModes:
-    - ReadWriteOnce
-  # Tiles are 5-15KB each and a job covers thousands of them across the zoom
-  # range, so this fills faster than a log volume would. Nothing prunes it.
-  size: 5Gi
-  # The claim survives upgrades and pod restarts on its own — it is named after
-  # the release and nothing re-provisions it. `helm uninstall` does delete it,
-  # and the annotation below is what prevents that.
-  #
-  # Not on by default, because a kept claim then collides with a later
-  # `helm install` of the same release name: Helm tries to create a PVC that is
-  # already there and fails the whole install. Turn it on if losing the cache
-  # to an uninstall matters more than that, and delete the claim by hand when
-  # you really mean to.
-  annotations: {}
-  #  helm.sh/resource-policy: keep
-  # Must match where the app actually writes. Cache paths are built as a
-  # relative `cache/<source>` and the image's WORKDIR is /service, so this is
-  # /service/cache. Pointing it elsewhere mounts a volume nothing ever writes
-  # to, and the cache silently stays ephemeral.
-  mountPath: /service/cache
+  # The tile cache. Every tile the app downloads is written to a per-source
+  # SQLite database under `cache/`, and re-used for a day before it is even
+  # revalidated — so without a volume here, replacing the pod throws away the
+  # work and re-downloads every tile from the upstream tile server on the next
+  # job.
+  cache:
+    enabled: false
+    existingClaim: ""
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    # Tiles are 5-15KB each and a job covers thousands of them across the zoom
+    # range, so this fills faster than a log volume would. Nothing prunes it.
+    size: 5Gi
+    annotations: {}
+    #  helm.sh/resource-policy: keep
+    mountPath: /service/cache
+  # The packaged results. A finished job writes a zip to `output/` and reports
+  # a URL that `GET /output/<file>` serves it from — the only way the file
+  # leaves the container. Without a volume here, replacing the pod between
+  # "Done" and the client's download loses the zip, and the client's only way
+  # back to it is to run the whole job again.
+  output:
+    enabled: false
+    existingClaim: ""
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    # A packaged route is tens to hundreds of MB, against a cache measured in
+    # whole tile pyramids — so this is smaller than the cache above by design.
+    # Nothing prunes it either, and unlike the cache, nothing here is worth
+    # keeping once the client has its copy.
+    size: 2Gi
+    annotations: {}
+    #  helm.sh/resource-policy: keep
+    mountPath: /service/output
 
 # A freshly provisioned volume is owned by root, but the image runs as the
 # unprivileged omfg user, so without a matching fsGroup the kubelet leaves the

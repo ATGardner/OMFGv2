@@ -11,6 +11,7 @@ import {
   startMetricsServer,
   stopMetricsServer,
 } from './src/metrics.ts';
+import {createOutputRouter, toDownloadUrls} from './src/output.ts';
 import {errorLogger, getLogger, requestLogger} from './src/utils/logging.ts';
 
 const logger = getLogger('index');
@@ -50,8 +51,23 @@ app.post('/downloadTiles', async (req, res) => {
 
 app.get('/queue/:id', ({params: {id}}, res) => {
   const {code, status, result} = downloadManager.getJobStatus(id);
-  res.status(code).send({status, result});
+  /*
+   * `result` stays exactly as the job reported it — an ETA, an Error or the
+   * packager's own paths. `downloads` is the part a client can act on: the
+   * URLs of the route below, which is the only way the packaged file leaves
+   * this container.
+   */
+  res
+    .status(code)
+    .send({status, result, downloads: toDownloadUrls(status, result)});
 });
+
+/*
+ * After the routes above rather than beside the health router, on purpose:
+ * downloads belong in the request log and in the metrics histogram, and the
+ * route pattern `/output/:file` keeps that a single series.
+ */
+app.use(createOutputRouter());
 
 app.use(errorLogger);
 
