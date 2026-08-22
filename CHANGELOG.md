@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/ATGardner/OMFGv2/compare/v2.3.0...v3.0.0) (2026-08-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* serve packaged output over HTTP, on its own volume ([#600](https://github.com/ATGardner/OMFGv2/issues/600))
+
+### Features
+
+* serve packaged output over HTTP, on its own volume ([#600](https://github.com/ATGardner/OMFGv2/issues/600)) ([5e09f72](https://github.com/ATGardner/OMFGv2/commit/5e09f72e58c818fc97194ed2839e0af7ae4e0543))
+
 ## [2.3.0](https://github.com/ATGardner/OMFGv2/compare/v2.2.0...v2.3.0) (2026-08-18)
 
 
