@@ -25,7 +25,7 @@
     "@types/jpeg-js": "0.3.7",
     "@types/node": "26.4.0",
     "@types/yargs": "17.0.35",
-    "@typescript-eslint/eslint-plugin": "8.68.0",
+    "@typescript-eslint/eslint-plugin": "8.69.0",
     "@typescript/native": "npm:typescript@7.0.2",
     "eslint": "10.9.1",
     "eslint-config-prettier": "10.1.8",
@@ -34,7 +34,7 @@
     "globals": "17.11.0",
     "prettier": "3.9.6",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "typescript-eslint": "8.68.0"
+    "typescript-eslint": "8.69.0"
   },
   "dependencies": {
     "@tmcw/togeojson": "7.1.2",
