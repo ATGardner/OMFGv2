@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.0.0](https://github.com/ATGardner/OMFGv2/compare/v2.3.0...v3.0.0) (2026-09-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* serve packaged output over HTTP, on its own volume ([#600](https://github.com/ATGardner/OMFGv2/issues/600))
+
+### Features
+
+* serve packaged output over HTTP, on its own volume ([#600](https://github.com/ATGardner/OMFGv2/issues/600)) ([5e09f72](https://github.com/ATGardner/OMFGv2/commit/5e09f72e58c818fc97194ed2839e0af7ae4e0543))
+
+
+### Bug Fixes
+
+* **deps:** update dependency @xmldom/xmldom to v0.9.12 ([#605](https://github.com/ATGardner/OMFGv2/issues/605)) ([5631b5d](https://github.com/ATGardner/OMFGv2/commit/5631b5d25fa5c98dcef1da45aec1722415d8115c))
+* **deps:** update dependency express-rate-limit to v8.7.0 ([#609](https://github.com/ATGardner/OMFGv2/issues/609)) ([4e71933](https://github.com/ATGardner/OMFGv2/commit/4e71933511f980ec01eb79c40bda11c541161f6f))
+
 ## [2.3.0](https://github.com/ATGardner/OMFGv2/compare/v2.2.0...v2.3.0) (2026-08-18)
 
 
