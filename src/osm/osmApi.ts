@@ -51,17 +51,28 @@ async function describeFailure(response: Response): Promise<string> {
 }
 
 /*
+ * The OSM JSON document `/full` answers with: the relation, its member ways
+ * and their nodes, as one flat `elements` array. Only the converter reads
+ * inside an element, so the element itself stays unmodelled here.
+ */
+export interface OsmJson {
+  version?: number;
+  generator?: string;
+  elements: Record<string, unknown>[];
+}
+
+/*
  * `kind` is what labels the metric — the path embeds the relation id, so using
  * it would mint a new series per relation downloaded. `subject` is the
  * opposite: it names the specific thing that was missing, and is only ever
  * read by a human.
  */
-function osmApiRequest(
+function osmApiRequest<T>(
   kind: string,
   baseUrl: string,
   path: string,
   subject: string,
-): Promise<unknown> {
+): Promise<T> {
   return observeOsmApiQuery(kind, async () => {
     const result = await fetch(`${baseUrl}${path}`, {
       /*
@@ -85,14 +96,18 @@ function osmApiRequest(
       throw new Error(await describeFailure(result));
     }
 
-    return result.json();
+    /*
+     * `Response.json()` is typed `unknown`: nothing has validated this body,
+     * and the cast is where we accept it as the shape the caller asked for.
+     */
+    return result.json() as Promise<T>;
   });
 }
 
 /*
  * `/full` returns the relation, its member ways, and every node of those ways
  * — precisely what the Overpass `(._;>;)` recursion this replaces produced, in
- * the same OSM JSON shape `osmtogeojson` consumes.
+ * the same OSM JSON shape `osm2geojson-lite` consumes.
  *
  * Overpass was answering the same query with 504s
  * (`Dispatcher_Client::request_read_and_idx::timeout`): its public instance
@@ -106,8 +121,8 @@ function osmApiRequest(
 export function fetchRelation(
   relationId: number,
   baseUrl: string = API_BASE,
-): Promise<unknown> {
-  return osmApiRequest(
+): Promise<OsmJson> {
+  return osmApiRequest<OsmJson>(
     'relation',
     baseUrl,
     `/relation/${relationId}/full.json`,

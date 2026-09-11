@@ -1,5 +1,5 @@
 import type {FeatureCollection, Geometry} from 'geojson';
-import osmtogeojson from 'osmtogeojson';
+import osm2geojson from 'osm2geojson-lite';
 import {fetchRelation} from '../osm/osmApi.ts';
 import type {RouteSource} from '../types.ts';
 
@@ -19,7 +19,19 @@ export default class OSMRelationSource implements RouteSource {
 
   async getGeoJson(): Promise<FeatureCollection<Geometry | null>> {
     const osmJson = await fetchRelation(this.relationId);
-    return osmtogeojson(osmJson);
+    /*
+     * `completeFeature` returns a FeatureCollection rather than a bare
+     * geometry; `renderTagged` with `excludeWay: false` keeps the tagged
+     * member ways as features of their own alongside the merged relation,
+     * which is the set osmtogeojson produced with no options. Only
+     * `extractCoordinates` reads this, so the duplication between the relation
+     * and its ways costs a second pass over the same points and no tiles.
+     */
+    return osm2geojson(osmJson, {
+      completeFeature: true,
+      renderTagged: true,
+      excludeWay: false,
+    });
   }
 
   toString(): string {
