@@ -12,6 +12,7 @@ import {
   stopMetricsServer,
 } from './src/metrics.ts';
 import {createOutputRouter, toDownloadUrls} from './src/output.ts';
+import {startPruning} from './src/retention.ts';
 import {errorLogger, getLogger, requestLogger} from './src/utils/logging.ts';
 
 const logger = getLogger('index');
@@ -97,6 +98,13 @@ const server = app.listen(port, () => {
 startMetricsServer();
 
 /*
+ * After the listener rather than before it: the boot sweep reads the whole
+ * output directory, and there is no reason to make the first readiness probe
+ * wait behind it.
+ */
+const stopPruning = startPruning();
+
+/*
  * One readiness period at the chart's default, which is what the flag above
  * needs to be seen: the kubelet keeps routing to this pod until its own probe
  * fails and the endpoints controller catches up, so closing the listener the
@@ -121,6 +129,7 @@ process.once('SIGTERM', () => {
     // Keep-alive sockets sitting idle would otherwise hold `close` open.
     server.closeIdleConnections();
     stopMetricsServer();
+    stopPruning();
   }, DRAIN_MS).unref();
 });
 
