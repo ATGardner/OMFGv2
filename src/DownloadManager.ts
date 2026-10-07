@@ -22,10 +22,30 @@ export interface DownloadRequest {
   outputFile?: string;
 }
 
+export interface PrunedJobs {
+  /*
+   * Jobs, not files: a `Both` job leaves two files behind and a failed one
+   * leaves none, so neither number stands in for the other.
+   */
+  jobs: number;
+  files: string[];
+}
+
 export interface JobStatus {
   code: number;
   status?: string;
   result?: unknown;
+}
+
+/*
+ * The files a job left on disk. `result` is a single name for one packager and
+ * an array for `Both`, where MultiPackager returns one per packager — and it
+ * is neither for a job that is still running or has failed, which is why the
+ * strings are filtered rather than assumed.
+ */
+function resultFiles(result: unknown): string[] {
+  const files = Array.isArray(result) ? (result as unknown[]) : [result];
+  return files.filter((file) => typeof file === 'string');
 }
 
 function generateOutputFile(
@@ -78,6 +98,42 @@ class DownloadManager {
     const {code = 200, status, result}: JobState = job.state;
     logger.info(`code: ${code}, status: ${status}, result: ${String(result)}`);
     return {code, status, result};
+  }
+
+  /*
+   * Every file the jobs still in the table point at, so a sweep of the output
+   * directory can tell a result somebody may yet download from what a restart
+   * left behind.
+   */
+  referencedFiles(): string[] {
+    return [...this.jobs.values()].flatMap(({state}) =>
+      resultFiles(state.result),
+    );
+  }
+
+  /*
+   * Drops every job that finished before `before`, and hands back the files
+   * they named so the caller can unlink them — the table is private, and a
+   * pruner that reached into it would be free to drop a running job too.
+   *
+   * A job that is still going has no `finishedAt` at all, so it fails the
+   * comparison without a case of its own. Deleting from a Map while iterating
+   * it is defined behaviour: the entry is simply not visited again.
+   */
+  pruneJobs(before: number): PrunedJobs {
+    const pruned: PrunedJobs = {jobs: 0, files: []};
+    for (const [id, job] of this.jobs) {
+      const {finishedAt, result} = job.state;
+      if (!finishedAt || finishedAt >= before) {
+        continue;
+      }
+
+      pruned.jobs += 1;
+      pruned.files.push(...resultFiles(result));
+      this.jobs.delete(id);
+    }
+
+    return pruned;
   }
 
   private async runDownload(job: DownloadJob): Promise<void> {

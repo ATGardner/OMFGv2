@@ -219,6 +219,7 @@ export default class DownloadJob {
         this.tileSource.attribution,
       );
       this.state.status = 'Done';
+      this.state.finishedAt = Date.now();
     } catch (error) {
       /*
        * Both of these used to assign `result`, so a failed job reported the
@@ -226,6 +227,8 @@ export default class DownloadJob {
        */
       this.state.result = error;
       this.state.status = 'Failed';
+      // Stamped beside the terminal status in both branches — see JobState.
+      this.state.finishedAt = Date.now();
       throw error;
     }
   }

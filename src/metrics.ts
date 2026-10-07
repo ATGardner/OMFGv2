@@ -167,6 +167,25 @@ const jobsRejected = new Counter({
 });
 
 /*
+ * What retention actually collected, which is the only account of it there is:
+ * a sweep that quietly stopped working looks exactly like a sweep with nothing
+ * to do, and the difference only shows up as a volume filling. Bytes rather
+ * than files alone, because that is the number the volume is sized in.
+ */
+const outputPruned = new Counter({
+  name: 'omfg_output_pruned_bytes_total',
+  help: 'Bytes of packaged output deleted by retention, by reason',
+  labelNames: ['reason'],
+  registers: [registry],
+});
+
+const jobsPruned = new Counter({
+  name: 'omfg_download_jobs_pruned_total',
+  help: 'Finished jobs dropped from the job table by retention',
+  registers: [registry],
+});
+
+/*
  * No separate request counter: a histogram already exports `_count` per label
  * set, so rate() over `omfg_http_request_duration_seconds_count` gives
  * throughput and the `status` label gives the 400-vs-500 split.
@@ -258,6 +277,22 @@ export function observeTileProcessed(
 
 export function observeJobRejected(): void {
   jobsRejected.inc();
+}
+
+export function observeJobsPruned(count: number): void {
+  jobsPruned.inc(count);
+}
+
+/*
+ * `expired` is a job's own output going after its entry in the table;
+ * `orphaned` is a file no job claims, which after a restart is every file on
+ * the volume. A rising `orphaned` share is pods being replaced mid-job.
+ */
+export function observeOutputPruned(
+  reason: 'expired' | 'orphaned',
+  bytes: number,
+): void {
+  outputPruned.inc({reason}, bytes);
 }
 
 export async function observeJob(run: () => Promise<void>): Promise<void> {
