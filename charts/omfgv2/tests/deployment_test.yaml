@@ -53,17 +53,71 @@ tests:
     asserts:
       - lengthEqual:
           path: spec.template.spec.containers[0].env
-          count: 3
+          count: 7
 
   - it: passes logLevel through when set
     set:
       logLevel: info
     asserts:
       - equal:
-          path: spec.template.spec.containers[0].env[3]
+          path: spec.template.spec.containers[0].env[7]
           value:
             name: LOG_LEVEL
             value: info
+
+  # The app prunes unless RETENTION_ENABLED says otherwise, so an unset
+  # variable would leave `enabled: false` doing nothing — the same trap as
+  # METRICS_ENABLED, and the reason both are rendered either way.
+  - it: passes the retention settings through as env vars
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[3]
+          value:
+            name: RETENTION_ENABLED
+            value: "true"
+      - equal:
+          path: spec.template.spec.containers[0].env[4]
+          value:
+            name: JOB_TTL_HOURS
+            value: "24"
+      - equal:
+          path: spec.template.spec.containers[0].env[5]
+          value:
+            name: OUTPUT_TTL_DAYS
+            value: "7"
+      - equal:
+          path: spec.template.spec.containers[0].env[6]
+          value:
+            name: PRUNE_INTERVAL_MINUTES
+            value: "60"
+
+  - it: turns retention off without dropping the other settings
+    set:
+      retention.enabled: false
+      retention.jobTtlHours: 6
+      retention.outputTtlDays: 2
+      retention.intervalMinutes: 15
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[3]
+          value:
+            name: RETENTION_ENABLED
+            value: "false"
+      - equal:
+          path: spec.template.spec.containers[0].env[4]
+          value:
+            name: JOB_TTL_HOURS
+            value: "6"
+      - equal:
+          path: spec.template.spec.containers[0].env[5]
+          value:
+            name: OUTPUT_TTL_DAYS
+            value: "2"
+      - equal:
+          path: spec.template.spec.containers[0].env[6]
+          value:
+            name: PRUNE_INTERVAL_MINUTES
+            value: "15"
 
   # The app serves metrics unless METRICS_ENABLED says otherwise, so an unset
   # variable here would leave a listener running on a port the chart never
