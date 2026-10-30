@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.0.0](https://github.com/ATGardner/OMFGv2/compare/v2.3.0...v3.0.0) (2026-10-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* serve packaged output over HTTP, on its own volume ([#600](https://github.com/ATGardner/OMFGv2/issues/600))
+
+### Features
+
+* serve packaged output over HTTP, on its own volume ([#600](https://github.com/ATGardner/OMFGv2/issues/600)) ([5e09f72](https://github.com/ATGardner/OMFGv2/commit/5e09f72e58c818fc97194ed2839e0af7ae4e0543))
+
+
+### Bug Fixes
+
+* **deps:** move runtime to Node 26 to match @types/node ([#642](https://github.com/ATGardner/OMFGv2/issues/642)) ([66981a8](https://github.com/ATGardner/OMFGv2/commit/66981a8662de0e9f9348d80f8c4bd162b37e8176))
+* **deps:** update dependency @tmcw/togeojson to v7.1.3 ([#648](https://github.com/ATGardner/OMFGv2/issues/648)) ([eab3f91](https://github.com/ATGardner/OMFGv2/commit/eab3f914dd3b12e6e9efd959aa4b258f712a3a4a))
+* **deps:** update dependency @xmldom/xmldom to v0.9.12 ([#605](https://github.com/ATGardner/OMFGv2/issues/605)) ([5631b5d](https://github.com/ATGardner/OMFGv2/commit/5631b5d25fa5c98dcef1da45aec1722415d8115c))
+* **deps:** update dependency express to v5.3.0 ([#649](https://github.com/ATGardner/OMFGv2/issues/649)) ([281598b](https://github.com/ATGardner/OMFGv2/commit/281598bcc28503c7d274e0aa4ded43447429e203))
+* **deps:** update dependency express-rate-limit to v8.7.0 ([#609](https://github.com/ATGardner/OMFGv2/issues/609)) ([4e71933](https://github.com/ATGardner/OMFGv2/commit/4e71933511f980ec01eb79c40bda11c541161f6f))
+* **deps:** update dependency express-rate-limit to v8.7.1 ([#645](https://github.com/ATGardner/OMFGv2/issues/645)) ([a831649](https://github.com/ATGardner/OMFGv2/commit/a8316491cde7d5d5cb29a2e2ecccdb95125103c9))
+* **deps:** update dependency jszip to v3.10.2 ([#621](https://github.com/ATGardner/OMFGv2/issues/621)) ([3eb13ab](https://github.com/ATGardner/OMFGv2/commit/3eb13abb3509f59f52976e227a8619be699d0dd5))
+* **deps:** update dependency moment to v2.31.0 ([#625](https://github.com/ATGardner/OMFGv2/issues/625)) ([1e00554](https://github.com/ATGardner/OMFGv2/commit/1e00554c2cded679aca434c19cc1e703a1c579ff))
+* **deps:** update dependency p-queue to v10 ([#656](https://github.com/ATGardner/OMFGv2/issues/656)) ([af6ec75](https://github.com/ATGardner/OMFGv2/commit/af6ec7586f8bc0366a67d8208fc238640239a283))
+* **deps:** update dependency p-queue to v9.3.4 ([#652](https://github.com/ATGardner/OMFGv2/issues/652)) ([7b95c37](https://github.com/ATGardner/OMFGv2/commit/7b95c3767e78e827627fb2154b063e03501431a4))
+* **deps:** update dependency p-queue to v9.3.5 ([#653](https://github.com/ATGardner/OMFGv2/issues/653)) ([280a3f2](https://github.com/ATGardner/OMFGv2/commit/280a3f2a3281796fe17bf76cf3b04433da1ced99))
+* **deps:** update dependency yargs to v18.2.0 ([#633](https://github.com/ATGardner/OMFGv2/issues/633)) ([1c22d24](https://github.com/ATGardner/OMFGv2/commit/1c22d246486a1cd15aa8944946900d0d406d52f3))
+* replace osmtogeojson with osm2geojson-lite ([#620](https://github.com/ATGardner/OMFGv2/issues/620)) ([a0c08ba](https://github.com/ATGardner/OMFGv2/commit/a0c08bafc12a649d585e10f826d26880879d1ae7))
+
 ## [2.3.0](https://github.com/ATGardner/OMFGv2/compare/v2.2.0...v2.3.0) (2026-08-18)
 
 
