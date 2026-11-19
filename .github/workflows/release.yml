@@ -79,10 +79,28 @@ jobs:
             exit 1
           fi
 
-          docker buildx imagetools create \
-            -t "$IMAGE:$TAG" \
-            -t "$IMAGE:latest" \
-            "$source"
+          # GHCR answers a burst of manifest writes with a 403 secondary
+          # rate limit — the push that trips it is usually `latest`, the
+          # second of the two tags. The failure is transient and
+          # `imagetools create` is idempotent, so retry instead of losing the
+          # release: a failed image job also skips the chart job below, which
+          # is how v2.3.0 shipped an image but no 2.3.0 chart.
+          for attempt in 1 2 3; do
+            if docker buildx imagetools create \
+              -t "$IMAGE:$TAG" \
+              -t "$IMAGE:latest" \
+              "$source"; then
+              break
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::could not tag $source after $attempt attempts"
+              exit 1
+            fi
+
+            # GHCR's own advice is "wait a few minutes"; back off to ~3.
+            sleep $((attempt * 60))
+          done
 
           docker buildx imagetools inspect "$IMAGE:$TAG" \
             --format '{{println .Manifest.Digest}}'
