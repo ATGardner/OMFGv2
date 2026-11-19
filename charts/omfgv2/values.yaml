@@ -193,6 +193,33 @@ persistence:
     #  helm.sh/resource-policy: keep
     mountPath: /service/output
 
+# Retention. Nothing else ever removes either half of what a job leaves behind:
+# its entry sits in an in-memory table from the moment it finishes, and its zip
+# sits on the output volume from the moment it is written. A sweep runs on the
+# interval below and once at startup — and the startup pass is the one that
+# matters, because a restart empties the table and leaves every file on the
+# volume with no job to claim it.
+retention:
+  # The app prunes unless this says otherwise, so a run without this chart
+  # still tidies up after itself — hence the env var is set either way. Turning
+  # it off keeps every job and every file for ever, which is a volume you have
+  # to watch yourself.
+  enabled: true
+  # How long a finished job keeps its entry and its zip. This is the window a
+  # client has to collect its download, and `/queue/<id>` answers for exactly
+  # as long — so it is the number to raise if somebody starts a job in the
+  # evening and fetches it the next morning.
+  jobTtlHours: 24
+  # The age at which a file with no job to claim it is deleted, which after a
+  # pod is replaced mid-job is every file on the volume. Longer than
+  # jobTtlHours by a wide margin on purpose: a job's own zip is minutes to
+  # hours old while it is being written, and this rule must never be what
+  # deletes it.
+  outputTtlDays: 7
+  # How often the sweep runs, on top of the one at startup. It is a readdir and
+  # a stat per file, so this is cheap; there is just rarely anything to do.
+  intervalMinutes: 60
+
 # A freshly provisioned volume is owned by root, but the image runs as the
 # unprivileged omfg user, so without a matching fsGroup the kubelet leaves the
 # volume root unwritable and the very first tile write fails. This defaults to

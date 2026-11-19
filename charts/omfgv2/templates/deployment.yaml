@@ -66,6 +66,18 @@ spec:
               value: {{ .Values.metrics.enabled | quote }}
             - name: METRICS_PORT
               value: {{ .Values.metrics.port | quote }}
+            # Set either way for the same reason as METRICS_ENABLED above: the
+            # app prunes finished jobs and their output unless told not to, so
+            # an unset variable would leave the chart's `enabled: false` doing
+            # nothing at all.
+            - name: RETENTION_ENABLED
+              value: {{ .Values.retention.enabled | quote }}
+            - name: JOB_TTL_HOURS
+              value: {{ .Values.retention.jobTtlHours | quote }}
+            - name: OUTPUT_TTL_DAYS
+              value: {{ .Values.retention.outputTtlDays | quote }}
+            - name: PRUNE_INTERVAL_MINUTES
+              value: {{ .Values.retention.intervalMinutes | quote }}
             {{- with .Values.logLevel }}
             # Only when set, unlike the metrics pair above: the app's default
             # is the one this chart wants, so there is nothing to override
